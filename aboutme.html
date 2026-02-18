@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>PlugIn3D — About</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Oxanium:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bgx: 50%;
+      --bgy: 42%;
+
+      --spotx: 50%;
+      --spoty: 45%;
+      --spotOn: 0;
+
+      --btnBg: rgba(255,255,255,0.12);
+      --btnBgHover: rgba(255,255,255,0.16);
+      --btnBorder: rgba(255,255,255,0.20);
+      --btnBorderHover: rgba(255,255,255,0.26);
+    }
+
+    html, body{
+      height: 100%;
+      margin: 0;
+      background: #000;
+      font-family: "Space Grotesk", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    body{ overflow-y:auto; overscroll-behavior:none; touch-action: pan-y; }
+
+    /* custom cursor */
+    html.hasCursor, html.hasCursor *{ cursor: none !important; }
+    #cursor{
+      position: fixed; left:0; top:0;
+      width: 34px; height: 34px;
+      margin-left:-17px; margin-top:-17px;
+      pointer-events:none; z-index:9999;
+      opacity:0;
+      transform: translate3d(0,0,0) rotate(0deg) scale(1);
+      filter: drop-shadow(0 10px 24px rgba(0,0,0,0.55));
+      background: center/contain no-repeat;
+      will-change: transform, opacity;
+      transition: opacity 200ms ease;
+    }
+    html.hasCursor #cursor{ opacity:1; }
+
+    .bg{
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(1800px 1400px at var(--bgx) var(--bgy), rgba(255,255,255,0.20), rgba(0,0,0,0) 64%),
+        radial-gradient(2000px 1600px at calc(var(--bgx) + 14%) calc(var(--bgy) + 34%), rgba(190,220,255,0.14), rgba(0,0,0,0) 70%),
+        radial-gradient(1900px 1500px at 50% 90%, rgba(255,255,255,0.08), rgba(0,0,0,0) 72%),
+        radial-gradient(circle at 50% 50%, #101014 0%, #070707 44%, #000 84%);
+      transform: scale(1.03);
+    }
+
+    .spot{
+      position: fixed; inset: 0; z-index: 1; pointer-events:none;
+      background:
+        radial-gradient(680px 460px at var(--spotx) var(--spoty),
+          rgba(255,255,255, calc(0.13 * var(--spotOn))),
+          rgba(255,255,255,0) 62%);
+      mix-blend-mode: screen;
+      filter: blur(2px);
+      opacity: 0.9;
+    }
+
+    .vignette{
+      position: fixed; inset: 0; z-index: 2; pointer-events:none;
+      background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.52) 86%, rgba(0,0,0,0.88) 100%);
+    }
+
+    .grain{
+      position: fixed; inset: -20%; z-index: 3; pointer-events:none;
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+      opacity: 0.06;
+      mix-blend-mode: overlay;
+      transform: rotate(6deg);
+    }
+
+    .wrap{
+      position: relative;
+      z-index: 10;
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      padding:
+        calc(22px + env(safe-area-inset-top))
+        16px
+        calc(22px + env(safe-area-inset-bottom))
+        16px;
+      box-sizing: border-box;
+    }
+
+    /* unified layout */
+    .layout{
+      width: min(980px, 96vw);
+      display: grid;
+      gap: 18px;
+    }
+
+    .top{
+      display:flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      text-decoration:none;
+      font-weight: 900;
+      color: rgba(255,255,255,0.95);
+      background: var(--btnBg);
+      border: 1px solid var(--btnBorder);
+      backdrop-filter: blur(12px);
+      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select:none;
+    }
+    .dot{
+      width: 8px; height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.74);
+      box-shadow: 0 0 16px rgba(255,255,255,0.20);
+    }
+    @media (hover:hover) and (pointer:fine){
+      .btn:hover{ transform: translateY(-2px); background: var(--btnBgHover); border-color: var(--btnBorderHover); }
+    }
+    .btn:active{ transform: translateY(0); }
+    
+    .muteBtn{
+      position: fixed;
+      top: calc(18px + env(safe-area-inset-top));
+      right: calc(18px + env(safe-area-inset-right));
+      z-index: 30;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.20);
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.95);
+      font-size: 20px;
+      cursor: pointer;
+      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+      backdrop-filter: blur(12px);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .muteBtn:hover{
+      transform: translateY(-2px);
+      background: rgba(255,255,255,0.16);
+      border-color: rgba(255,255,255,0.26);
+    }
+    .muteBtn:active{
+      transform: translateY(0);
+    }
+    .muteBtn.muted{
+      background: rgba(255,100,100,0.15);
+      border-color: rgba(255,100,100,0.3);
+    }
+
+    /* Scroll typing */
+    .typeSection{
+      margin-top: 10px;
+      position: relative;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 18px;
+      min-height: 260vh;
+    }
+    .typeSticky{
+      position: sticky;
+      top: calc(14px + env(safe-area-inset-top));
+      padding: 16px 0 10px 0;
+      width: min(900px, 90vw);
+      margin: 0 auto;
+    }
+    .label{
+      font-family: "Oxanium","Space Grotesk",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.62);
+      margin-bottom: 10px;
+    }
+    .typeBox{
+      border-radius: 18px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(10px);
+      padding: 16px 16px 18px 16px;
+    }
+    .typed{
+      white-space: pre-wrap;
+      font-size: clamp(14px, 1.7vw, 18px);
+      line-height: 1.7;
+      color: rgba(255,255,255,0.92);
+      letter-spacing: 0.01em;
+      text-shadow: 0 0 18px rgba(255,255,255,0.06);
+      min-height: 14em;
+    }
+    .caret{
+      display:inline-block;
+      width: 10px;
+      opacity: 0.9;
+      transform: translateY(1px);
+      animation: blink 1.05s steps(2, end) infinite;
+    }
+    @keyframes blink{ 50%{ opacity: 0; } }
+
+    .scrollHint{
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.55);
+    }
+
+    .arrowControls{
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 20;
+    }
+    .arrowBtn{
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: none;
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.85);
+      font-size: 14px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform 140ms ease, background 140ms ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .arrowBtn:hover{
+      transform: scale(1.1);
+      background: rgba(255,255,255,0.18);
+    }
+    .arrowBtn:active{
+      transform: scale(0.92);
+    }
+
+    /* Film reveal */
+    .filmReveal{
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.10);
+      opacity: 0;
+      transform: translateY(14px) scale(0.992);
+      filter: blur(1px);
+      transition: opacity 520ms ease, transform 520ms ease, filter 520ms ease;
+      pointer-events: none;
+    }
+    .filmReveal.on{
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+      pointer-events: auto;
+    }
+    .filmTitle{
+      font-family: "Oxanium","Space Grotesk",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.76);
+      margin-bottom: 10px;
+    }
+    .ytFrame{
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 16px;
+      overflow:hidden;
+      background: rgba(0,0,0,0.28);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 22px 80px rgba(0,0,0,0.55);
+      position: relative;
+    }
+    .ytFrame img{
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      cursor: pointer;
+      display: block;
+    }
+    .ytFrame iframe{
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display:block;
+    }
+    .ytFallback{
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.62);
+    }
+    .ytFallback a{
+      color: rgba(255,255,255,0.88);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255,255,255,0.22);
+    }
+    .ytFallback a:hover{ border-bottom-color: rgba(255,255,255,0.45); }
+
+    @media (pointer: coarse){
+      :root{
+        --btnBg: rgba(255,255,255,0.085);
+        --btnBgHover: rgba(255,255,255,0.085);
+        --btnBorder: rgba(255,255,255,0.16);
+        --btnBorderHover: rgba(255,255,255,0.16);
+      }
+      .dot{ background: rgba(255,255,255,0.58); box-shadow: 0 0 10px rgba(255,255,255,0.14); }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="cursor" aria-hidden="true"></div>
+  <div class="bg"></div>
+  <div class="spot" id="spot"></div>
+  <div class="vignette"></div>
+  <div class="grain"></div>
+
+  <main class="wrap">
+    <div class="layout">
+      <header class="top">
+        <h1>About</h1>
+        <div class="btnRow">
+          <a class="btn" href="main.html"><span class="dot"></span> Back</a>
+        </div>
+      </header>
+
+      <section class="typeSection" id="typeSection">
+        <div class="typeSticky">
+          <div class="label">About me</div>
+
+          <div class="typeBox">
+            <div class="arrowControls">
+              <button class="arrowBtn" id="btnUp" aria-label="Go to start">↑</button>
+              <button class="arrowBtn" id="btnDown" aria-label="Go to end">↓</button>
+            </div>
+            <div class="typed" id="typed"></div><span class="caret" aria-hidden="true">▍</span>
+
+            <div class="filmReveal" id="filmReveal">
+              <div class="filmTitle">Short film example</div>
+
+              <div class="ytFrame">
+                <a href="https://www.youtube.com/watch?v=tLdF5b-qFrw" target="_blank" rel="noopener">
+                  <img id="ytThumb" src="https://i.ytimg.com/vi/tLdF5b-qFrw/maxresdefault.jpg" alt="Video thumbnail" loading="lazy">
+                </a>
+              </div>
+
+              <div class="ytFallback">
+                If the embed is blocked by your browser or host, open it here:
+                <a href="https://youtu.be/tLdF5b-qFrw?si=39kNdRj8uRS4YfR2" target="_blank" rel="noopener">YouTube link</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <button class="muteBtn" id="muteBtn" aria-label="Toggle sound">🔊</button>
+
+  <script>
+    const isMobile = matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0;
+    function setVar(name, value){ document.documentElement.style.setProperty(name, value); }
+
+    // ===== reliable audio playback =====
+    let audioEnabled = sessionStorage.getItem('audioEnabled') === 'true';
+    
+    function enableAudio(){
+      if (audioEnabled) return;
+      audioEnabled = true;
+      sessionStorage.setItem('audioEnabled', 'true');
+      // Warm up audio context
+      const dummy = new Audio();
+      dummy.volume = 0;
+      dummy.play().catch(()=>{});
+    }
+    
+    // Try to enable immediately with a tiny delay
+    setTimeout(() => {
+      if (!audioEnabled) enableAudio();
+    }, 50);
+    
+    // Also enable on first user interaction
+    ['click', 'keydown', 'touchstart', 'touchend', 'scroll'].forEach(event => {
+      document.addEventListener(event, enableAudio, { once: true });
+    });
+
+    function playSound(filename, volume = 0.6){
+      if (!audioEnabled) return;
+      try {
+        const url = new URL(filename, location.href).href;
+        const audio = new Audio(url);
+        audio.volume = volume;
+        audio.preload = 'auto';
+        audio.onerror = () => console.error(`Audio failed to load: ${filename}`);
+        const playPromise = audio.play();
+        if (playPromise && playPromise.catch) {
+          playPromise.catch(e => console.warn(`Audio playback failed: ${e.message}`));
+        }
+      } catch (e) {
+        console.error(`Error playing sound: ${e.message}`);
+      }
+    }
+
+    // spotlight cursor (desktop)
+    if (!isMobile){
+      setVar("--spotOn", "1");
+      addEventListener("pointermove", (e) => {
+        setVar("--spotx", `${((e.clientX / innerWidth)*100).toFixed(2)}%`);
+        setVar("--spoty", `${((e.clientY / innerHeight)*100).toFixed(2)}%`);
+      }, { passive:true });
+    } else {
+      setVar("--spotOn", "0");
+    }
+
+    // subtle drift
+    function drift(t){
+      const tt = t * 0.00008;
+      const x = Math.sin(tt) * 0.9;
+      const y = Math.cos(tt * 0.9) * 0.7;
+      setVar("--bgx", `${(50 + x * 10).toFixed(2)}%`);
+      setVar("--bgy", `${(42 + y * 8).toFixed(2)}%`);
+      requestAnimationFrame(drift);
+    }
+    requestAnimationFrame(drift);
+
+    // ===== scroll scrub typing =====
+    const fullText =
+`I am a 3D generalist focused on Geometry Nodes, making procedural content and effects that stay flexible, controllable, and fast to iterate.
+
+Geometry Nodes content
+. I build node systems for scattering, instancing, growth, trails, pattern generators, cloners, motion loops, attribute driven variation, and modular setups that can be reused across different projects.
+. I focus on clean inputs and clear controls so the same graph can produce multiple looks without rebuilding.
+. I care about stability and performance so the setups behave consistently, stay art directable, and remain easy to tweak late in production.
+
+Blender Expertise
+. 10+ years with Blender (modeling, animation, VFX, rendering, Cycles, Eevee, Grease Pencil).
+. Custom brush sets, particle effects, dynamic paint, smoke/fire/liquid sims.
+
+Procedural Art Direction
+. Non-destructive workflows that let art directors quickly test variations without redoing assets.
+. Scalable systems suitable for batch-heavy production pipelines.
+
+Portfolio / Experience
+. Shipped multiple indie projects with downloadable node packs on Gumroad and other marketplaces.
+. Built brand through YouTube tutorials and Patreon+ content.
+. Collaborated with game studios, animation teams, and VFX supervisors on procedural asset creation.
+`;
+    const typedEl = document.getElementById("typed");
+    const section = document.getElementById("typeSection");
+    const filmReveal = document.getElementById("filmReveal");
+
+    function computeOffsetChars(text){
+      const lines = text.split("\n");
+      let sum = 0;
+      for (let i = 0; i < Math.min(2, lines.length); i++){
+        sum += lines[i].length + 1;
+      }
+      return Math.max(0, sum - 1);
+    }
+    const OFFSET_CHARS = computeOffsetChars(fullText);
+
+    // Faster down (but not crazy): shorter scrub distance
+    function tuneScrollLength(){
+      const vh = innerHeight;
+      const SPEED = 1.05; // lower = faster typing
+      const scrubPx = clamp(fullText.length * SPEED, 1050, 2300);
+      section.style.minHeight = `calc(${vh}px + ${Math.round(scrubPx)}px)`;
+    }
+    tuneScrollLength();
+
+    function getProgress(){
+      const vh = innerHeight;
+      const top = section.getBoundingClientRect().top + window.scrollY;
+      const h = section.offsetHeight;
+      const span = Math.max(1, h - vh);
+      return clamp((window.scrollY - top) / span, 0, 1);
+    }
+
+let rafScroll = 0;
+
+    // ===== smooth helpers =====
+    function smoothstep(t){ return t*t*(3 - 2*t); }
+    function smootherstep(t){ return t*t*t*(t*(t*6 - 15) + 10); }
+
+    function setTypedByProgress(p){
+      const remaining = Math.max(0, fullText.length - OFFSET_CHARS);
+      const n = OFFSET_CHARS + Math.round(p * remaining);
+      typedEl.textContent = fullText.slice(0, n);
+    }
+
+    function updateReveal(p){
+      const revealAt = 0.52;
+      const on = p >= revealAt;
+      filmReveal.classList.toggle("on", on);
+    }
+
+    function updateTyped(){
+      rafScroll = 0;
+      const p = getProgress();
+      setTypedByProgress(p);
+      updateReveal(p);
+    }
+
+    function onScroll(){
+      if (rafScroll) return;
+      rafScroll = requestAnimationFrame(updateTyped);
+    }
+
+    addEventListener("scroll", onScroll, { passive:true });
+    addEventListener("resize", () => {
+      tuneScrollLength();
+      updateTyped();
+    }, { passive:true });
+
+    // ===== one-scroll-up triggers smooth rewind =====
+    let snapLock = false;
+    let snapRAF = 0;
+
+    function cancelSnap(){
+      if (snapRAF) cancelAnimationFrame(snapRAF);
+      snapRAF = 0;
+    }
+
+    function startSmoothSnapUp(){
+      if (snapLock) return;
+      snapLock = true;
+      cancelSnap();
+
+      const startY = window.scrollY;
+      const targetY = 0;
+
+      const startP = getProgress();
+      const endP = 0;
+
+      // MUCH SLOWER + SMOOTHER for fluid, dreamy rewind
+      const DURATION = 2200; // way slower
+      const t0 = performance.now();
+
+      function step(now){
+        const t = clamp((now - t0) / DURATION, 0, 1);
+        const e = smootherstep(t);
+
+        const y = startY + (targetY - startY) * e;
+        window.scrollTo(0, y);
+
+        const textT = clamp(t * 800, 0, 1);
+        const p = startP + (endP - startP) * textT;
+        setTypedByProgress(p);
+        updateReveal(p);
+
+        if (t < 1){
+          snapRAF = requestAnimationFrame(step);
+        } else {
+          snapRAF = 0;
+          window.scrollTo(0, targetY);
+          setTypedByProgress(0);
+          updateReveal(0);
+          setTimeout(() => { snapLock = false; }, 2200);
+        }
+      }
+
+      snapRAF = requestAnimationFrame(step);
+    }
+
+    setTypedByProgress(0);
+    updateTyped();
+    tuneScrollLength();
+
+    // ===== arrow button controls =====
+    const btnUp = document.getElementById('btnUp');
+    const btnDown = document.getElementById('btnDown');
+
+    function startSmoothSnapDown(){
+      if (snapLock) return;
+      snapLock = true;
+      cancelSnap();
+
+      const startY = window.scrollY;
+      const section = document.getElementById("typeSection");
+      const vh = innerHeight;
+      const scrollableHeight = section.offsetHeight - vh;
+      const targetY = startY + scrollableHeight;
+
+      const startP = getProgress();
+      const endP = 1;
+
+      const DURATION = 2000;
+      const t0 = performance.now();
+
+      function step(now){
+        const t = clamp((now - t0) / DURATION, 0, 1);
+        const e = smootherstep(t);
+
+        const y = startY + (targetY - startY) * e;
+        window.scrollTo(0, y);
+
+        const p = startP + (endP - startP) * e;
+        setTypedByProgress(p);
+        updateReveal(p);
+
+        if (t < 1){
+          snapRAF = requestAnimationFrame(step);
+        } else {
+          snapRAF = 0;
+          window.scrollTo(0, targetY);
+          setTypedByProgress(1);
+          updateReveal(1);
+          setTimeout(() => { snapLock = false; }, 100);
+        }
+      }
+
+      snapRAF = requestAnimationFrame(step);
+    }
+
+    btnUp.addEventListener('click', startSmoothSnapUp);
+    btnDown.addEventListener('click', startSmoothSnapDown);
+    const muteBtn = document.getElementById('muteBtn');
+    function updateMuteButtonUI(){
+      if (audioEnabled){
+        muteBtn.textContent = '🔊';
+        muteBtn.classList.remove('muted');
+      } else {
+        muteBtn.textContent = '🔇';
+        muteBtn.classList.add('muted');
+      }
+    }
+    updateMuteButtonUI();
+    muteBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      audioEnabled = !audioEnabled;
+      sessionStorage.setItem('audioEnabled', audioEnabled ? 'true' : 'false');
+      updateMuteButtonUI();
+      if (audioEnabled){
+        playSound("User Interface, Beep, Button, Short, Tonal, Soft, Tone Up SND68367.wav", 0.6);
+      }
+    });
+
+    // ===== button hover sound =====
+    document.querySelectorAll('.btn:not(.muteBtn)').forEach(btn => {
+      btn.addEventListener('mouseenter', () => {
+        playSound("User Interface, Beep, Button, Chord, Low, Soft, Wobbling SND68401.wav", 0.5);
+      });
+      btn.addEventListener('click', () => {
+        if (!btn.textContent.includes('Back')){
+          playSound("User Interface, Beep, Button, Short, Tonal, Soft, Tone Up SND68367.wav", 0.6);
+        } else {
+          sessionStorage.setItem('playBackSound', 'true');
+        }
+      });
+    });
+
+    // play sound if arriving from back button
+    if (sessionStorage.getItem('playBackSound') === 'true'){
+      sessionStorage.removeItem('playBackSound');
+      setTimeout(() => {
+        playSound("User Interface, Beep, Button, Chord, Up Down, Soft SND68399.wav", 0.6);
+      }, 100);
+    }
+
+    // ===== cursor (logo.png) with motion =====
+    (function setupCursor(){
+      if (isMobile) return;
+
+      const cursorEl = document.getElementById("cursor");
+      const CANDIDATES = ["model/logo.png", "logo.png"];
+
+      async function exists(relPath){
+        const url = new URL(relPath, location.href).href;
+        try{
+          const head = await fetch(url, { method:"HEAD", cache:"no-store" });
+          if (head.ok) return url;
+          const get = await fetch(url, { method:"GET", cache:"no-store", headers:{ "Range":"bytes=0-0" }});
+          return get.ok ? url : null;
+        }catch{ return null; }
+      }
+
+      async function pickCursor(){
+        for (const rel of CANDIDATES){
+          const url = await exists(rel);
+          if (url) return url;
+        }
+        return null;
+      }
+
+      let targetX = innerWidth * 0.5, targetY = innerHeight * 0.5;
+      let cx = targetX, cy = targetY;
+      let vx = 0, vy = 0;
+      let rot = 0;
+      let pulse = 0;
+
+      addEventListener("pointermove", (e) => { targetX = e.clientX; targetY = e.clientY; }, { passive:true });
+      addEventListener("pointerdown", () => { pulse = 1; }, { passive:true });
+
+      function tick(){
+        const dx = targetX - cx;
+        const dy = targetY - cy;
+
+        vx = vx * 0.60 + dx * 0.40;
+        vy = vy * 0.60 + dy * 0.40;
+
+        cx += vx;
+        cy += vy;
+
+        const speed = Math.min(38, Math.hypot(vx, vy));
+
+        const tt = performance.now() * 0.002;
+        const breathe = 1 + Math.sin(tt) * 0.03;
+
+        pulse *= 0.82;
+        const scale = breathe * (1 + speed * 0.003) * (1 + pulse * 0.18);
+
+        rot = (rot + 0.35) % 360;
+        cursorEl.style.transform =
+          `translate3d(${cx}px, ${cy}px, 0) rotate(${rot.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+
+        requestAnimationFrame(tick);
+      }
+
+      pickCursor().then((url) => {
+        if (!url) return;
+        const img = new Image();
+        img.src = url;
+        img.onload = () => {
+          cursorEl.style.backgroundImage = `url("${url}")`;
+          document.documentElement.classList.add("hasCursor");
+          requestAnimationFrame(tick);
+        };
+      });
+    })();
+
+    // Helper functions
+    function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+  </script>
+</body>
+</html>

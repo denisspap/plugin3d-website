@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="color-scheme" content="dark">
+  <title>PLUGIN3D Intro</title>
+
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Oxanium:wght@600;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bgx: 50%;
+      --bgy: 42%;
+      --bloom: .62;
+
+      --spotx: 50%;
+      --spoty: 45%;
+      --spotOn: 0;
+
+      --s0: 1; --s1: 1; --s2: 1; --s3: 1; --s4: 1; --s5: 1; --s6: 1; --s7: 1;
+      --g0: .35; --g1: .35; --g2: .35; --g3: .35; --g4: .35; --g5: .35; --g6: .35; --g7: .35;
+    }
+
+    html, body{
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      font-family: "Space Grotesk", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      touch-action: manipulation;
+    }
+
+    /* custom cursor */
+    html.hasCursor, html.hasCursor *{ cursor: none !important; }
+    #cursor{
+      position: fixed;
+      left: 0; top: 0;
+      width: 34px; height: 34px;
+      margin-left: -17px; margin-top: -17px;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0;
+      transform: translate3d(0,0,0) rotate(0deg) scale(1);
+      filter: drop-shadow(0 10px 24px rgba(0,0,0,0.55));
+      background: center/contain no-repeat;
+      will-change: transform, opacity;
+      transition: opacity 200ms ease;
+    }
+    html.hasCursor #cursor{ opacity: 1; }
+
+    .intro{ position: fixed; inset: 0; overflow: hidden; background: #000; }
+
+    /* cinematic gate */
+    .gate{
+      position: fixed;
+      left: 0; right: 0;
+      height: 10px;
+      background: rgba(0,0,0,0.92);
+      z-index: 20;
+      pointer-events: none;
+      transform: translateY(-100%);
+      animation: gateIn 900ms cubic-bezier(.2,.9,.2,1) forwards;
+    }
+    .gate.bottom{ top:auto; bottom:0; transform: translateY(100%); }
+    .gate.top{ top:0; --from:-100%; }
+    .gate.bottom{ --from:100%; }
+    @keyframes gateIn{
+      0% { transform: translateY(var(--from, -100%)); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    .bg{
+      position: absolute; inset: 0; z-index: 1;
+      background:
+        radial-gradient(1800px 1400px at var(--bgx) var(--bgy), rgba(255,255,255,0.20), rgba(0,0,0,0) 64%),
+        radial-gradient(2000px 1600px at calc(var(--bgx) + 14%) calc(var(--bgy) + 34%), rgba(190,220,255,0.14), rgba(0,0,0,0) 70%),
+        radial-gradient(1900px 1500px at 50% 90%, rgba(255,255,255,0.08), rgba(0,0,0,0) 72%),
+        radial-gradient(circle at 50% 50%, #101014 0%, #070707 44%, #000 84%);
+      filter: contrast(1.06) saturate(1.10);
+      transform: scale(1.02);
+    }
+
+    .spot{
+      position: absolute; inset: 0; z-index: 2; pointer-events: none;
+      background:
+        radial-gradient(600px 420px at var(--spotx) var(--spoty),
+          rgba(255,255,255, calc(0.14 * var(--spotOn))),
+          rgba(255,255,255,0) 60%);
+      mix-blend-mode: screen;
+      opacity: 0.85;
+      filter: blur(2px);
+    }
+
+    .vignette{
+      position: absolute; inset: 0; z-index: 4; pointer-events: none;
+      background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.52) 86%, rgba(0,0,0,0.88) 100%);
+    }
+
+    .grain{
+      position: absolute; inset: -20%; z-index: 5; pointer-events: none;
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+      opacity: 0.06;
+      mix-blend-mode: overlay;
+      transform: rotate(6deg);
+    }
+
+    /* no shadows/filters on full-screen model-viewer */
+    model-viewer{
+      position: absolute; inset: 0; z-index: 6;
+      width: 100vw; height: 100vh;
+      display: block;
+      background: transparent;
+      outline: none;
+      filter: none !important;
+      box-shadow: none !important;
+      touch-action: none; /* allow drag rotation */
+    }
+
+    .logo-wrap{
+      position: absolute; inset: 0; z-index: 6;
+      display: grid; place-items: center;
+      transform: translate3d(0,-12vh,0) scale(1);
+      opacity: 1;
+      pointer-events: none;
+      will-change: transform, opacity;
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+    }
+    .logo-wrap > model-viewer{ pointer-events: auto; }
+
+    .title{
+      position: fixed;
+      left: 50%;
+      bottom: calc(48px + env(safe-area-inset-bottom));
+      transform: translate3d(-50%,0,0);
+      display: flex;
+      gap: 0.02em;
+      font-weight: 700;
+      font-size: clamp(52px, 10vw, 150px);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.97);
+      user-select: none;
+      pointer-events: none;
+      z-index: 10;
+      font-family: "Poppins", "Oxanium", "Space Grotesk", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      text-shadow:
+        0 0 calc(22px * var(--bloom)) rgba(255,255,255,0.30),
+        0 0 calc(60px * var(--bloom)) rgba(200,225,255,0.18),
+        0 22px 56px rgba(0,0,0,0.58);
+    }
+
+    .title span{
+      display: inline-block;
+      transform-origin: 50% 85%;
+      text-shadow:
+        0 0 calc(18px * var(--bloom) * var(--g)) rgba(255,255,255,0.38),
+        0 0 calc(44px * var(--bloom) * var(--g)) rgba(210,235,255,0.22);
+    }
+    .title .c0 { transform: scale(var(--s0)); --g: var(--g0); }
+    .title .c1 { transform: scale(var(--s1)); --g: var(--g1); }
+    .title .c2 { transform: scale(var(--s2)); --g: var(--g2); }
+    .title .c3 { transform: scale(var(--s3)); --g: var(--g3); }
+    .title .c4 { transform: scale(var(--s4)); --g: var(--g4); }
+    .title .c5 { transform: scale(var(--s5)); --g: var(--g5); }
+    .title .c6 { transform: scale(var(--s6)); --g: var(--g6); }
+    .title .c7 { transform: scale(var(--s7)); --g: var(--g7); }
+
+    .hint{
+      position: fixed;
+      left: 50%;
+      bottom: calc(18px + env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      z-index: 14;
+
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-size: 12px;
+      color: rgba(255,255,255,0.66);
+      text-shadow: 0 16px 38px rgba(0,0,0,0.65);
+      user-select: none;
+      pointer-events: none;
+      opacity: 0;
+      filter: blur(6px);
+      transition: opacity 320ms ease, filter 320ms ease;
+      width: min(520px, 92vw);
+      text-align: center;
+    }
+    .hint.on{ opacity: 1; filter: blur(0); }
+
+    .status{
+      position: fixed;
+      left: 50%;
+      top: calc(18px + env(safe-area-inset-top));
+      transform: translateX(-50%);
+      z-index: 30;
+      width: min(720px, 92vw);
+      color: rgba(255,255,255,0.78);
+      font-size: 12px;
+      line-height: 1.45;
+      text-align: center;
+      pointer-events: none;
+      opacity: 0.9;
+      text-shadow: 0 18px 52px rgba(0,0,0,0.55);
+    }
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      opacity: 0.85;
+      word-break: break-all;
+    }
+
+    .muteBtn{
+      position: fixed;
+      top: calc(18px + env(safe-area-inset-top));
+      right: calc(18px + env(safe-area-inset-right));
+      z-index: 30;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.20);
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.95);
+      font-size: 20px;
+      cursor: pointer;
+      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+      backdrop-filter: blur(12px);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .muteBtn:hover{
+      transform: translateY(-2px);
+      background: rgba(255,255,255,0.16);
+      border-color: rgba(255,255,255,0.26);
+    }
+    .muteBtn:active{
+      transform: translateY(0);
+    }
+    .muteBtn.muted{
+      background: rgba(255,100,100,0.15);
+      border-color: rgba(255,100,100,0.3);
+    }
+
+    .intro.exiting .title{
+      animation: titleOut 1100ms cubic-bezier(.2,.8,.2,1) forwards;
+    }
+    .intro.exiting .hint{
+      opacity: 0;
+      filter: blur(10px);
+      transition: 260ms ease;
+    }
+    @keyframes titleOut{
+      0%   { transform: translate3d(-50%,0,0); opacity:1; filter: blur(0); }
+      100% { transform: translate3d(-50%,18px,0); opacity:0; filter: blur(16px); }
+    }
+    .intro.exiting .gate{ opacity: 0; transition: 520ms ease; }
+
+    @media (max-width: 420px){
+      .title{ bottom: calc(58px + env(safe-area-inset-bottom)); letter-spacing: 0.12em; }
+      .gate{ height: 8px; }
+      #cursor{ width: 30px; height: 30px; margin-left:-15px; margin-top:-15px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="cursor" aria-hidden="true"></div>
+
+  <section class="intro" id="intro">
+    <div class="gate top"></div>
+    <div class="gate bottom"></div>
+
+    <div class="bg"></div>
+    <div class="spot" id="spot"></div>
+    <div class="vignette"></div>
+    <div class="grain"></div>
+
+    <div class="status" id="status">
+      Loading…
+      <div class="mono" id="statusUrl"></div>
+    </div>
+
+    <div class="logo-wrap" id="logoWrap">
+      <model-viewer
+        id="mv"
+        src=""
+        alt="3D logo"
+        camera-controls
+        disable-zoom
+        disable-pan
+        interaction-prompt="none"
+        disable-tap
+        camera-orbit="35deg 72deg 9m"
+        min-camera-orbit="auto auto 9m"
+        max-camera-orbit="auto auto 9m"
+        field-of-view="30deg"
+        orientation="0deg 0deg 90deg"
+        tone-mapping="neutral"
+        exposure="1.35"
+        light-intensity="2.1"
+        shadow-intensity="0.65"
+        shadow-softness="0.95"
+        loading="eager"
+        reveal="auto"
+      ></model-viewer>
+    </div>
+
+    <div class="title" aria-label="PLUGIN3D">
+      <span class="c0">P</span><span class="c1">L</span><span class="c2">U</span><span class="c3">G</span>
+      <span class="c4">I</span><span class="c5">N</span><span class="c6">3</span><span class="c7">D</span>
+    </div>
+
+    <div class="hint" id="hint">Scroll down • Press any key</div>
+    <button class="muteBtn" id="muteBtn" aria-label="Toggle sound">🔊</button>
+  </section>
+
+  <script>
+    const intro = document.getElementById("intro");
+    const mv = document.getElementById("mv");
+    const logoWrap = document.getElementById("logoWrap");
+    const hint = document.getElementById("hint");
+    const status = document.getElementById("status");
+    const statusUrl = document.getElementById("statusUrl");
+
+    const isMobile = matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0;
+
+    function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+    function setVar(name, value){ document.documentElement.style.setProperty(name, value); }
+
+    // ===== reliable audio playback =====
+    let audioEnabled = sessionStorage.getItem('audioEnabled') === 'true';
+    
+    function enableAudio(){
+      if (audioEnabled) return;
+      audioEnabled = true;
+      sessionStorage.setItem('audioEnabled', 'true');
+      // Warm up audio context
+      const dummy = new Audio();
+      dummy.volume = 0;
+      dummy.play().catch(()=>{});
+    }
+    
+    // Try to enable immediately with a tiny delay to allow user gesture detection
+    setTimeout(() => {
+      if (!audioEnabled) enableAudio();
+    }, 100);
+    
+    // Also enable on first user interaction
+    ['click', 'keydown', 'touchstart', 'touchend', 'scroll'].forEach(event => {
+      document.addEventListener(event, enableAudio, { once: true });
+    });
+
+    function playSound(filename, volume = 0.6){
+      if (!audioEnabled) return;
+      try {
+        const url = new URL(filename, location.href).href;
+        const audio = new Audio(url);
+        audio.volume = volume;
+        audio.preload = 'auto';
+        audio.onerror = () => console.error(`Audio failed to load: ${filename}`);
+        const playPromise = audio.play();
+        if (playPromise && playPromise.catch) {
+          playPromise.catch(e => console.warn(`Audio playback failed: ${e.message}`));
+        }
+      } catch (e) {
+        console.error(`Error playing sound: ${e.message}`);
+      }
+    }
+
+    // spotlight cursor
+    if (!isMobile) {
+      setVar("--spotOn", "1");
+      addEventListener("pointermove", (e) => {
+        setVar("--spotx", `${((e.clientX / innerWidth) * 100).toFixed(2)}%`);
+        setVar("--spoty", `${((e.clientY / innerHeight) * 100).toFixed(2)}%`);
+      }, { passive:true });
+    } else {
+      setVar("--spotOn", "0");
+    }
+
+    // resolve paths
+    const MODEL_CANDIDATES = ["logo.gltf", "model/logo.gltf"];
+    const HDR_CANDIDATES   = ["studio.hdr", "model/studio.hdr"];
+    const MAIN_CANDIDATES  = ["main.html", "model/main.html"];
+
+    async function exists(relPath){
+      const url = new URL(relPath, location.href).href;
+      try{
+        const head = await fetch(url, { method:"HEAD", cache:"no-store" });
+        if (head.ok) return url;
+        const get = await fetch(url, { method:"GET", cache:"no-store", headers:{ "Range":"bytes=0-0" }});
+        return get.ok ? url : null;
+      }catch{ return null; }
+    }
+    async function pickFirstOk(list){
+      for (const rel of list){
+        const url = await exists(rel);
+        if (url) return url;
+      }
+      return null;
+    }
+
+    let resolved = { model:null, hdr:null, main:null };
+    let ready = false;
+
+    (async () => {
+      resolved.model = await pickFirstOk(MODEL_CANDIDATES);
+      resolved.hdr   = await pickFirstOk(HDR_CANDIDATES);
+      resolved.main  = await pickFirstOk(MAIN_CANDIDATES);
+
+      statusUrl.textContent = resolved.model || new URL(MODEL_CANDIDATES[0], location.href).href;
+
+      if (!resolved.model){
+        status.innerHTML = `Couldn’t load logo.gltf<br><span class="mono">${statusUrl.textContent}</span>`;
+        return;
+      }
+
+      if (resolved.hdr){
+        mv.setAttribute("environment-image", resolved.hdr);
+        mv.setAttribute("environment-rotation", "90deg");
+        mv.setAttribute("skybox-rotation", "90deg");
+      }
+
+      mv.autoRotate = false;
+      mv.setAttribute("src", resolved.model);
+    })();
+
+    // ===== Drag + mouse-look combined =====
+    let dragging = false;
+    mv.addEventListener("pointerdown", () => { dragging = true; }, { passive:true });
+    function stopDrag(){ dragging = false; tx = 0; ty = 0; }
+    addEventListener("pointerup", stopDrag, { passive:true });
+    addEventListener("pointercancel", stopDrag, { passive:true });
+    addEventListener("blur", stopDrag, { passive:true });
+
+    // ===== smooth interactive loop (stops during exit) =====
+    let rafId = 0;
+    let exiting = false;
+
+    let tx = 0, ty = 0, x = 0, y = 0, vx = 0, vy = 0;
+    const SENS = 1.0;
+
+    function setTargetFromXY(px, py){
+      const nx = (px / innerWidth) * 2 - 1;
+      const ny = (py / innerHeight) * 2 - 1;
+      tx = clamp(nx * SENS, -1, 1);
+      ty = clamp(ny * SENS, -1, 1);
+    }
+
+    if (!isMobile){
+      addEventListener("pointermove", (e) => setTargetFromXY(e.clientX, e.clientY), { passive:true });
+      addEventListener("pointerdown", (e) => setTargetFromXY(e.clientX, e.clientY), { passive:true });
+    }
+
+    const letters = 8;
+    function setLettersInteractive(xx){
+      for (let i=0;i<letters;i++){
+        const t = i/(letters-1);
+        const side = (t*2 - 1);
+        const w = Math.exp(-Math.pow((side - xx) / 0.55, 2));
+        const sc = 1 + w * 0.34;
+        setVar(`--s${i}`, sc.toFixed(3));
+        const g = clamp((sc - 1) / 0.34, 0, 1);
+        setVar(`--g${i}`, (0.35 + g * 0.80).toFixed(3));
+      }
+    }
+    function setLettersWave(now){
+      const t = now * 0.0020;
+      for (let i=0;i<letters;i++){
+        const wave = (Math.sin(t + i * 0.55) * 0.5 + 0.5);
+        const sc = 1 + wave * 0.24;
+        setVar(`--s${i}`, sc.toFixed(3));
+        setVar(`--g${i}`, (0.45 + wave * 0.75).toFixed(3));
+      }
+    }
+
+    const baseAz = 35, baseEl = 72, radiusM = 9;
+    const maxAzDelta = 5, maxElDelta = 2;
+    let curAz = baseAz, curEl = baseEl;
+
+    mv.addEventListener("load", () => {
+      status.style.opacity = "0";
+      hint.classList.add("on");
+      ready = true;
+
+      mv.cameraControls = true;
+
+      mv.cameraOrbit = `${baseAz}deg ${baseEl}deg ${radiusM}m`;
+      mv.minCameraOrbit = `auto auto ${radiusM}m`;
+      mv.maxCameraOrbit = `auto auto ${radiusM}m`;
+
+      if (isMobile) {
+        mv.autoRotate = true;
+        mv.autoRotateDelay = 0;
+        mv.rotationPerSecond = "24deg";
+      } else {
+        mv.autoRotate = false;
+      }
+    });
+
+    function loop(now){
+      if (exiting) return;
+
+      if (isMobile){
+        const t = now * 0.00022;
+        const bx = Math.sin(t) * 0.8;
+        const by = Math.cos(t * 0.9) * 0.65;
+        setVar("--bgx", `${(50 + bx * 12).toFixed(2)}%`);
+        setVar("--bgy", `${(42 + by * 10).toFixed(2)}%`);
+        setLettersWave(now);
+      } else {
+        const k = 0.10, damp = 0.80;
+        vx = (vx + (tx - x) * k) * damp;
+        vy = (vy + (ty - y) * k) * damp;
+        x += vx; y += vy;
+
+        setVar("--bgx", `${(50 + x * 6).toFixed(2)}%`);
+        setVar("--bgy", `${(42 + y * 5).toFixed(2)}%`);
+        setLettersInteractive(x);
+
+        if (!dragging){
+          const tAz = baseAz - x * maxAzDelta;
+          const tEl = clamp(baseEl - y * maxElDelta, 40, 86);
+          curAz += (tAz - curAz) * 0.10;
+          curEl += (tEl - curEl) * 0.10;
+          mv.cameraOrbit = `${curAz.toFixed(2)}deg ${curEl.toFixed(2)}deg ${radiusM}m`;
+        } else {
+          try{
+            const parts = (mv.cameraOrbit || "").trim().split(/\s+/);
+            if (parts.length >= 2){
+              const az = parseFloat(parts[0]);
+              const el = parseFloat(parts[1]);
+              if (!Number.isNaN(az)) curAz = az;
+              if (!Number.isNaN(el)) curEl = el;
+            }
+          }catch{}
+        }
+      }
+
+      rafId = requestAnimationFrame(loop);
+    }
+    rafId = requestAnimationFrame(loop);
+
+    // ===== EXIT =====
+    function easeInOutCubic(t){
+      return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2;
+    }
+    function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+    function lerp(a,b,t){ return a + (b-a)*t; }
+    function bezier(p0,p1,p2,p3,t){
+      const u = 1 - t;
+      return (u*u*u*p0) + (3*u*u*t*p1) + (3*u*t*t*p2) + (t*t*t*p3);
+    }
+
+    function gotoMain(){
+      const fallback = new URL("main.html", location.href).href;
+      location.href = resolved.main || fallback;
+    }
+
+    function startExit(){
+      if (!ready) return;
+      if (exiting) return;
+      exiting = true;
+      if (rafId) cancelAnimationFrame(rafId);
+
+      intro.classList.add("exiting");
+      hint.classList.remove("on");
+      mv.autoRotate = false;
+      mv.cameraControls = false;
+
+      const start = performance.now();
+      const dur = 2200;
+
+      const W = innerWidth, H = innerHeight;
+      const x0 = 0,         y0 = -0.12 * H;
+      const x1 = 0.10 * W,  y1 = -0.16 * H;
+      const x2 = 0.34 * W,  y2 =  0.02 * H;
+      const x3 = 0.56 * W,  y3 =  0.12 * H;
+
+      const r0 = radiusM, r1 = 2.25;
+
+      let az0 = curAz, el0 = curEl;
+      try{
+        const parts = (mv.cameraOrbit || "").trim().split(/\s+/);
+        if (parts.length >= 2){
+          az0 = parseFloat(parts[0]) || az0;
+          el0 = parseFloat(parts[1]) || el0;
+        }
+      }catch{}
+
+      const az1 = az0 - 150;
+      const el1 = clamp(el0 + 8, 40, 86);
+
+      function step(now){
+        const t = Math.min(1, (now - start) / dur);
+        const e = easeInOutCubic(t);
+        const eo = easeOutCubic(t);
+
+        const lx = bezier(x0, x1, x2, x3, e);
+        const ly = bezier(y0, y1, y2, y3, e);
+
+        const base = 1 + 1.20 * eo;
+        const surge = 0.70 * Math.sin(Math.PI * e) * (1 - 0.25 * e);
+        const s = base + surge;
+
+        const fadeT = clamp((e - 0.72) / 0.28, 0, 1);
+        const op = 1 - (fadeT * fadeT * fadeT);
+
+        logoWrap.style.opacity = op.toFixed(3);
+        logoWrap.style.transform = `translate3d(${lx.toFixed(1)}px, ${ly.toFixed(1)}px, 0) scale(${s.toFixed(4)})`;
+
+        const r  = lerp(r0, r1, e);
+        const az = lerp(az0, az1, e);
+        const el = lerp(el0, el1, e);
+        mv.cameraOrbit = `${az.toFixed(2)}deg ${el.toFixed(2)}deg ${r.toFixed(2)}m`;
+
+        if (t < 1){
+          requestAnimationFrame(step);
+        } else {
+          gotoMain();
+        }
+      }
+      requestAnimationFrame(step);
+    }
+
+    // ===== One-time "scroll down" OR "any key" triggers exit =====
+    let armed = true;
+    function triggerOnce(){
+      if (!armed) return;
+      armed = false;
+      // play transition sound
+      playSound("User Interface, Beep, Button, Short, Tonal, Soft, Tone Up SND68367.wav", 0.7);
+      startExit();
+    }
+
+    // any key (ignore modifier-only)
+    addEventListener("keydown", (e) => {
+      if (e.key === "Shift" || e.key === "Alt" || e.key === "Control" || e.key === "Meta") return;
+      triggerOnce();
+    });
+
+    // wheel / trackpad scroll
+    addEventListener("wheel", (e) => {
+      // only if it's an intentional scroll
+      if (Math.abs(e.deltaY) > 2) triggerOnce();
+    }, { passive:true });
+
+    // touch scroll gesture (mobile): swipe up/down triggers
+    let touchStartY = 0;
+    addEventListener("touchstart", (e) => {
+      if (!e.touches || !e.touches[0]) return;
+      touchStartY = e.touches[0].clientY;
+    }, { passive:true });
+
+    addEventListener("touchmove", (e) => {
+      if (!armed) return;
+      if (!e.touches || !e.touches[0]) return;
+      const dy = e.touches[0].clientY - touchStartY;
+      if (Math.abs(dy) > 18) triggerOnce();
+    }, { passive:true });
+
+    // ===== custom cursor (logo.png) with motion =====
+    (function setupCursor(){
+      if (isMobile) return;
+
+      const cursorEl = document.getElementById("cursor");
+      const CANDIDATES = ["model/logo.png", "logo.png"];
+
+      async function pickCursor(){
+        for (const rel of CANDIDATES){
+          const url = await exists(rel);
+          if (url) return url;
+        }
+        return null;
+      }
+
+      let targetX = innerWidth * 0.5, targetY = innerHeight * 0.5;
+      let cx = targetX, cy = targetY;
+      let vx = 0, vy = 0;
+      let rot = 0, rotV = 0;
+      let pulse = 0;
+
+      addEventListener("pointermove", (e) => {
+        targetX = e.clientX;
+        targetY = e.clientY;
+      }, { passive:true });
+
+      addEventListener("pointerdown", () => { pulse = 1; }, { passive:true });
+
+      function tick(){
+        const dx = targetX - cx;
+        const dy = targetY - cy;
+
+        // stricter follow: increase influence of the new delta and reduce inertia
+        // originally 0.78/0.18 gave a noticeable lag; these values make the cursor
+        // react much faster while still keeping a little smoothing for organic motion.
+        vx = vx * 0.60 + dx * 0.40;
+        vy = vy * 0.60 + dy * 0.40;
+
+        cx += vx;
+        cy += vy;
+
+        const speed = Math.min(38, Math.hypot(vx, vy));
+
+        const tt = performance.now() * 0.002;
+        const breathe = 1 + Math.sin(tt) * 0.03;
+
+        pulse *= 0.82;
+        const scale = breathe * (1 + speed * 0.003) * (1 + pulse * 0.18);
+
+        // slow constant spin
+        rot = (rot + 0.35) % 360;
+        cursorEl.style.transform =
+          `translate3d(${cx}px, ${cy}px, 0) rotate(${rot.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+
+        requestAnimationFrame(tick);
+      }
+
+      pickCursor().then((url) => {
+        if (!url) return;
+        const img = new Image();
+        img.src = url;
+        img.onload = () => {
+          cursorEl.style.backgroundImage = `url("${url}")`;
+          document.documentElement.classList.add("hasCursor");
+          requestAnimationFrame(tick);
+        };
+      });
+    })();
+
+    // ===== button hover sound =====
+    document.querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('mouseenter', () => {
+        playSound("User Interface, Beep, Button, Chord, Low, Soft, Wobbling SND68401.wav", 0.5);
+      });
+      // click sound (except Back buttons)
+      btn.addEventListener('click', () => {
+        if (!btn.textContent.includes('Back')){
+          playSound("User Interface, Beep, Button, Short, Tonal, Soft, Tone Up SND68367.wav", 0.6);
+        } else {
+          // Back button: set flag for sound on next page
+          sessionStorage.setItem('playBackSound', 'true');
+        }
+      });
+    });
+
+    // ===== play sound if arriving from back button =====
+    if (sessionStorage.getItem('playBackSound') === 'true'){
+      sessionStorage.removeItem('playBackSound');
+      playSound("User Interface, Beep, Button, Chord, Up Down, Soft SND68399.wav", 0.6);
+    }
+
+    // ===== mute button =====
+    const muteBtn = document.getElementById('muteBtn');
+    function updateMuteButtonUI(){
+      if (audioEnabled){
+        muteBtn.textContent = '🔊';
+        muteBtn.classList.remove('muted');
+      } else {
+        muteBtn.textContent = '🔇';
+        muteBtn.classList.add('muted');
+      }
+    }
+    updateMuteButtonUI();
+    muteBtn.addEventListener('click', () => {
+      audioEnabled = !audioEnabled;
+      sessionStorage.setItem('audioEnabled', audioEnabled ? 'true' : 'false');
+      updateMuteButtonUI();
+      if (audioEnabled){
+        playSound("User Interface, Beep, Button, Short, Tonal, Soft, Tone Up SND68367.wav", 0.6);
+      }
+    });
+  </script>
+</body>
+</html>
