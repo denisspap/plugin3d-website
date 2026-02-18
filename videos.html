@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>PlugIn3D - Video Demo</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Oxanium:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bgx: 50%;
+      --bgy: 42%;
+      --spotx: 50%;
+      --spoty: 45%;
+      --spotOn: 0;
+
+      --btnBg: rgba(255,255,255,0.12);
+      --btnBgHover: rgba(255,255,255,0.16);
+      --btnBorder: rgba(255,255,255,0.20);
+      --btnBorderHover: rgba(255,255,255,0.26);
+    }
+
+    html, body{
+      height: 100%;
+      margin: 0;
+      background: #000;
+      font-family: "Space Grotesk", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    body{ overflow-y:auto; overscroll-behavior:none; touch-action: pan-y; }
+
+    /* custom cursor */
+    html.hasCursor, html.hasCursor *{ cursor: none !important; }
+    #cursor{
+      position: fixed; left:0; top:0;
+      width: 34px; height: 34px;
+      margin-left:-17px; margin-top:-17px;
+      pointer-events:none; z-index:9999;
+      opacity:0;
+      transform: translate3d(0,0,0) rotate(0deg) scale(1);
+      filter: drop-shadow(0 10px 24px rgba(0,0,0,0.55));
+      background: center/contain no-repeat;
+      will-change: transform, opacity;
+      transition: opacity 200ms ease;
+    }
+    html.hasCursor #cursor{ opacity:1; }
+
+    .bg{
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(1800px 1400px at var(--bgx) var(--bgy), rgba(255,255,255,0.20), rgba(0,0,0,0) 64%),
+        radial-gradient(2000px 1600px at calc(var(--bgx) + 14%) calc(var(--bgy) + 34%), rgba(190,220,255,0.14), rgba(0,0,0,0) 70%),
+        radial-gradient(1900px 1500px at 50% 90%, rgba(255,255,255,0.08), rgba(0,0,0,0) 72%),
+        radial-gradient(circle at 50% 50%, #101014 0%, #070707 44%, #000 84%);
+      transform: scale(1.03);
+    }
+    .spot{
+      position: fixed; inset: 0; z-index: 1; pointer-events:none;
+      background:
+        radial-gradient(680px 460px at var(--spotx) var(--spoty),
+          rgba(255,255,255, calc(0.13 * var(--spotOn))),
+          rgba(255,255,255,0) 62%);
+      mix-blend-mode: screen;
+      filter: blur(2px);
+      opacity: 0.9;
+    }
+    .vignette{
+      position: fixed; inset: 0; z-index: 2; pointer-events:none;
+      background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.52) 86%, rgba(0,0,0,0.88) 100%);
+    }
+    .grain{
+      position: fixed; inset: -20%; z-index: 3; pointer-events:none;
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+      opacity: 0.06;
+      mix-blend-mode: overlay;
+      transform: rotate(6deg);
+    }
+
+    .wrap{
+      position: relative; z-index: 10;
+      min-height: 100svh;
+      padding:
+        calc(22px + env(safe-area-inset-top))
+        16px
+        calc(22px + env(safe-area-inset-bottom))
+        16px;
+      box-sizing: border-box;
+      display: grid;
+      place-items: start center;
+    }
+    .layout{
+      width: min(1100px, 96vw);
+      display:grid;
+      gap: 14px;
+    }
+
+    .top{
+      display:flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+    }
+    h1{
+      margin: 0;
+      font-size: clamp(30px, 5.4vw, 62px);
+      font-weight: 850;
+      letter-spacing: -0.02em;
+      color: rgba(255,255,255,0.96);
+      line-height: 1.05;
+      text-shadow: 0 0 18px rgba(255,255,255,0.12), 0 22px 60px rgba(0,0,0,0.55);
+    }
+
+    .btnRow{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      text-decoration:none;
+      font-weight: 900;
+      color: rgba(255,255,255,0.95);
+      background: var(--btnBg);
+      border: 1px solid var(--btnBorder);
+      backdrop-filter: blur(12px);
+      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select:none;
+      cursor: pointer;
+    }
+    .dot{
+      width: 8px; height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.74);
+      box-shadow: 0 0 16px rgba(255,255,255,0.20);
+    }
+    @media (hover:hover) and (pointer:fine){
+      .btn:hover{ transform: translateY(-2px); background: var(--btnBgHover); border-color: var(--btnBorderHover); }
+    }
+    .btn:active{ transform: translateY(0); }
+    
+    .muteBtn{
+      position: fixed;
+      top: calc(18px + env(safe-area-inset-top));
+      right: calc(18px + env(safe-area-inset-right));
+      z-index: 30;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.20);
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.95);
+      font-size: 20px;
+      cursor: pointer;
+      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+      backdrop-filter: blur(12px);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .muteBtn:hover{
+      transform: translateY(-2px);
+      background: rgba(255,255,255,0.16);
+      border-color: rgba(255,255,255,0.26);
+    }
+    .muteBtn:active{
+      transform: translateY(0);
+    }
+    .muteBtn.muted{
+      background: rgba(255,100,100,0.15);
+      border-color: rgba(255,100,100,0.3);
+    }
+
+    .player{
+      width: 100%;
+      padding-top: 10px;
+      display:grid;
+      gap: 12px;
+      scroll-margin-top: 16px;
+    }
+    .frame{
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 16px;
+      overflow:hidden;
+      background: rgba(0,0,0,0.28);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 22px 80px rgba(0,0,0,0.55);
+    }
+    video{
+      width:100%;
+      height:100%;
+      display:block;
+      object-fit: contain;
+      background: rgba(0,0,0,0.35);
+    }
+
+    .credits{
+      margin-top: 8px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.66);
+      text-align: right;
+    }
+    .credits strong{
+      color: rgba(255,255,255,0.88);
+      font-weight: 700;
+    }
+
+    /* Scroll typing */
+    .typeSection{
+      margin-top: 10px;
+      position: relative;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 18px;
+      min-height: 260vh;
+    }
+    .typeSticky{
+      position: sticky;
+      top: calc(14px + env(safe-area-inset-top));
+      padding: 16px 0 10px 0;
+    }
+    .label{
+      font-family: "Oxanium","Space Grotesk",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.62);
+      margin-bottom: 10px;
+    }
+    .typeBox{
+      border-radius: 18px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(10px);
+      padding: 16px 16px 18px 16px;
+    }
+    .typed{
+      white-space: pre-wrap;
+      font-size: clamp(14px, 1.7vw, 18px);
+      line-height: 1.7;
+      color: rgba(255,255,255,0.92);
+      letter-spacing: 0.01em;
+      text-shadow: 0 0 18px rgba(255,255,255,0.06);
+      min-height: 14em;
+    }
+    .caret{
+      display:inline-block;
+      width: 10px;
+      opacity: 0.9;
+      transform: translateY(1px);
+      animation: blink 1.05s steps(2, end) infinite;
+    }
+    @keyframes blink{ 50%{ opacity: 0; } }
+
+    .scrollHint{
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.55);
+    }
+
+    /* Film reveal */
+    .filmReveal{
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.10);
+      opacity: 0;
+      transform: translateY(14px) scale(0.992);
+      filter: blur(1px);
+      transition: opacity 520ms ease, transform 520ms ease, filter 520ms ease;
+      pointer-events: none;
+    }
+    .filmReveal.on{
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+      pointer-events: auto;
+    }
+    .filmTitle{
+      font-family: "Oxanium","Space Grotesk",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.76);
+      margin-bottom: 10px;
+    }
+    .ytFrame{
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 16px;
+      overflow:hidden;
+      background: rgba(0,0,0,0.28);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 22px 80px rgba(0,0,0,0.55);
+      position: relative;
+    }
+    .ytFrame img{
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      cursor: pointer;
+      display: block;
+    }
+    .ytFrame iframe{
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display:block;
+    }
+    .ytFallback{
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.62);
+    }
+    .ytFallback a{
+      color: rgba(255,255,255,0.88);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255,255,255,0.22);
+    }
+    .ytFallback a:hover{ border-bottom-color: rgba(255,255,255,0.45); }
+  </style>
+</head>
+
+<body>
+  <div id="cursor" aria-hidden="true"></div>
+
+  <div class="bg"></div>
+  <div class="spot" id="spot"></div>
+  <div class="vignette"></div>
+  <div class="grain"></div>
+
+  <main class="wrap">
+    <div class="layout">
+      <header class="top">
+        <h1>Video Demo</h1>
+        <div class="btnRow">
+          <a class="btn" href="main.html"><span class="dot"></span> Back</a>
+        </div>
+      </header>
+
+      <div class="player" id="videoTop">
+        <div class="frame">
+          <video id="demoVideo" controls playsinline preload="metadata" autoplay muted></video>
+        </div>
+        <div class="credits">Music: <strong>Time</strong> by <strong>Hans Zimmer</strong></div>
+      </div>
+    </div>
+  </main>
+
+  <button class="muteBtn" id="muteBtn" aria-label="Toggle sound">🔊</button>
+
+  <script>
+    const isMobile = matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0;
+    function setVar(name, value){ document.documentElement.style.setProperty(name, value); }
+
+    // spotlight cursor (desktop)
+    if (!isMobile){
+      setVar("--spotOn", "1");
+      addEventListener("pointermove", (e) => {
+        setVar("--spotx", `${((e.clientX / innerWidth)*100).toFixed(2)}%`);
+        setVar("--spoty", `${((e.clientY / innerHeight)*100).toFixed(2)}%`);
+      }, { passive:true });
+    } else {
+      setVar("--spotOn", "0");
+    }
+
+    // subtle drift
+    function drift(t){
+      const tt = t * 0.00022;
+      const x = Math.sin(tt) * 0.9;
+      const y = Math.cos(tt * 0.9) * 0.7;
+      setVar("--bgx", `${(50 + x * 10).toFixed(2)}%`);
+      setVar("--bgy", `${(42 + y * 8).toFixed(2)}%`);
+      requestAnimationFrame(drift);
+    }
+    requestAnimationFrame(drift);
+
+    // local video
+    const video = document.getElementById("demoVideo");
+    video.src = new URL("videodemo.mp4", location.href).href;
+    
+    // Autoplay on page load
+    video.muted = true;
+    video.autoplay = true;
+    video.play().catch(()=>{}).then(()=>{
+      video.muted = false;
+    });
+    
+    // if the link contained ?autoplay=1, play demo transition sound
+    const params = new URLSearchParams(location.search);
+    if (params.get('autoplay') === '1'){
+      // play demo transition sound
+      playSound("User Interface, Beep, Button, Short, Tonal, Soft, Tone Up SND68367.wav", 0.7);
+    }
+
+    // ===== scroll scrub typing =====
+    const fullText =
+`I am a 3D generalist focused on Geometry Nodes, making procedural content and effects that stay flexible, controllable, and fast to iterate.
+
+Geometry Nodes content
+. I build node systems for scattering, instancing, growth, trails, pattern generators, cloners, motion loops, attribute driven variation, and modular setups that can be reused across different projects.
+. I focus on clean inputs and clear controls so the same graph can produce multiple looks without rebuilding.
+. I care about stability and performance so the setups behave consistently, stay art directable, and remain easy to tweak late in production.
+
+Tutorials and teaching
+. I create tutorials that explain Geometry Nodes in a practical way, from beginner friendly breakdowns to deeper workflows with attributes, fields, instances, and procedural animation.
+. I show how to debug node trees, how to simplify complex graphs into readable blocks, and how to turn experiments into repeatable tools.
+. I aim for content that helps people understand the logic so they can build their own systems confidently, not just copy a graph.
+
+3D generalist skill set
+. Modeling and sculpting, hard surface and organic.
+. Retopology and topology cleanup for animation and rendering.
+. UV unwrapping, packing, and asset prep.
+. Procedural workflows, non destructive modeling, and kit style construction.
+. Shading and materials, look development, texture workflows, and consistency across assets.
+. Lighting for mood, readability, and product style presentation.
+. Animation fundamentals, camera work, timing, and motion design.
+. Simulations and effects, particles, cloth, secondary motion, and scene dynamics.
+. Rendering and optimization, quality balance, performance, and exports for different platforms.
+. Compositing basics, render passes, color shaping, and final polish.
+. Asset organization, naming, scene hygiene, and pipeline friendly delivery.
+
+Addons and workflow tools
+. I build Blender addons to speed up common tasks, reduce repetitive clicks, and improve everyday workflow.
+. I enjoy designing tools that feel simple to use, with clean UI, reliable operators, and practical features that help artists stay in flow.
+. I like turning real production problems into tools that save time and make complex steps feel effortless.
+
+Short films
+. I enjoy making short films where I can combine procedural systems, lighting, animation, editing, and sound into a complete piece.
+. I like exploring style and atmosphere while keeping the process efficient so I can iterate quickly and actually finish projects with a strong final look.
+. I treat each film as a place to test new Geometry Nodes ideas in a real story driven context, not just a standalone effect.`;
+
+
+
+    // ===== reliable audio playback =====
+    let audioEnabled = sessionStorage.getItem('audioEnabled') === 'true';
+    
+    function enableAudio(){
+      if (audioEnabled) return;
+      audioEnabled = true;
+      sessionStorage.setItem('audioEnabled', 'true');
+      // Warm up audio context
+      const dummy = new Audio();
+      dummy.volume = 0;
+      dummy.play().catch(()=>{});
+    }
+    
+    // Try to enable immediately with a tiny delay to allow user gesture detection
+    setTimeout(() => {
+      if (!audioEnabled) enableAudio();
+    }, 50);
+    
+    // Also enable on first user interaction
+    ['click', 'keydown', 'touchstart', 'touchend', 'scroll'].forEach(event => {
+      document.addEventListener(event, enableAudio, { once: true });
+    });
+
+    function playSound(filename, volume = 0.6){
+      if (!audioEnabled) return;
+      try {
+        const url = new URL(filename, location.href).href;
+        const audio = new Audio(url);
+        audio.volume = volume;
+        audio.preload = 'auto';
+        audio.onerror = () => console.error(`Audio failed to load: ${filename}`);
+        const playPromise = audio.play();
+        if (playPromise && playPromise.catch) {
+          playPromise.catch(e => console.warn(`Audio playback failed: ${e.message}`));
+        }
+      } catch (e) {
+        console.error(`Error playing sound: ${e.message}`);
+      }
+    }
+
+    // ===== cursor (logo.png) with motion =====
+    (function setupCursor(){
+      if (isMobile) return;
+
+      const cursorEl = document.getElementById("cursor");
+      const CANDIDATES = ["model/logo.png", "logo.png"];
+
+      async function exists(relPath){
+        const url = new URL(relPath, location.href).href;
+        try{
+          const head = await fetch(url, { method:"HEAD", cache:"no-store" });
+          if (head.ok) return url;
+          const get = await fetch(url, { method:"GET", cache:"no-store", headers:{ "Range":"bytes=0-0" }});
+          return get.ok ? url : null;
+        }catch{ return null; }
+      }
+      async function pickCursor(){
+        for (const rel of CANDIDATES){
+          const url = await exists(rel);
+          if (url) return url;
+        }
+        return null;
+      }
+
+      let targetX = innerWidth * 0.5, targetY = innerHeight * 0.5;
+      let cx = targetX, cy = targetY;
+      let vx = 0, vy = 0;
+      let rot = 0;
+      let pulse = 0;
+
+      addEventListener("pointermove", (e) => { targetX = e.clientX; targetY = e.clientY; }, { passive:true });
+      addEventListener("pointerdown", () => { pulse = 1; }, { passive:true });
+
+      function tick(){
+        const dx = targetX - cx;
+        const dy = targetY - cy;
+
+        // faster, tighter following
+        vx = vx * 0.60 + dx * 0.40;
+        vy = vy * 0.60 + dy * 0.40;
+
+        cx += vx;
+        cy += vy;
+
+        const speed = Math.min(38, Math.hypot(vx, vy));
+
+        const tt = performance.now() * 0.002;
+        const breathe = 1 + Math.sin(tt) * 0.03;
+
+        pulse *= 0.82;
+        const scale = breathe * (1 + speed * 0.003) * (1 + pulse * 0.18);
+
+        // constant slow rotation
+        rot = (rot + 0.35) % 360;
+
+        cursorEl.style.transform =
+          `translate3d(${cx}px, ${cy}px, 0) rotate(${rot.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+
+        requestAnimationFrame(tick);
+      }
+
+      pickCursor().then((url) => {
+        if (!url) return;
+        const img = new Image();
+        img.src = url;
+        img.onload = () => {
+          cursorEl.style.backgroundImage = `url("${url}")`;
+          document.documentElement.classList.add("hasCursor");
+          requestAnimationFrame(tick);
+        };
+      });
+    })();
+
+    // ===== button hover sound =====
+    document.querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('mouseenter', () => {
+        playSound("User Interface, Beep, Button, Chord, Low, Soft, Wobbling SND68401.wav", 0.5);
+      });
+      // click sound (except Back buttons)
+      btn.addEventListener('click', () => {
+        if (!btn.textContent.includes('Back')){
+          playSound("User Interface, Beep, Button, Short, Tonal, Soft, Tone Up SND68367.wav", 0.6);
+        } else {
+          // Back button: set flag for sound on next page
+          sessionStorage.setItem('playBackSound', 'true');
+        }
+      });
+    });
+
+    // ===== mute button =====
+    const muteBtn = document.getElementById('muteBtn');
+    function updateMuteButtonUI(){
+      if (audioEnabled){
+        muteBtn.textContent = '🔊';
+        muteBtn.classList.remove('muted');
+      } else {
+        muteBtn.textContent = '🔇';
+        muteBtn.classList.add('muted');
+      }
+    }
+    updateMuteButtonUI();
+    muteBtn.addEventListener('click', () => {
+      audioEnabled = !audioEnabled;
+      sessionStorage.setItem('audioEnabled', audioEnabled ? 'true' : 'false');
+      updateMuteButtonUI();
+      if (audioEnabled){
+        playSound("User Interface, Beep, Button, Short, Tonal, Soft, Tone Up SND68367.wav", 0.6);
+      }
+    });
+
+    // ===== play sound if arriving from back button =====
+    if (sessionStorage.getItem('playBackSound') === 'true'){
+      sessionStorage.removeItem('playBackSound');
+      setTimeout(() => {
+        playSound("User Interface, Beep, Button, Chord, Up Down, Soft SND68399.wav", 0.6);
+      }, 100);
+    }
+  </script>
+</body>
+</html>
