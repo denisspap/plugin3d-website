@@ -4,384 +4,527 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="color-scheme" content="dark">
-  <title>PlugIn3D</title>
+  <title>PlugIn3D — Best Visuals</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Oxanium:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Oxanium:wght@600;700&display=swap" rel="stylesheet">
 
   <style>
     :root{
       --bgx: 50%;
       --bgy: 42%;
-
       --spotx: 50%;
       --spoty: 45%;
       --spotOn: 0;
 
+      --panel: rgba(255,255,255,0.05);
+      --panel-strong: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.12);
+      --border-strong: rgba(255,255,255,0.18);
+      --text: rgba(255,255,255,0.96);
+      --muted: rgba(255,255,255,0.64);
+
       --btnBg: rgba(255,255,255,0.12);
-      --btnBgHover: rgba(255,255,255,0.16);
+      --btnBgHover: rgba(255,255,255,0.17);
       --btnBorder: rgba(255,255,255,0.20);
-      --btnBorderHover: rgba(255,255,255,0.26);
+      --btnBorderHover: rgba(255,255,255,0.28);
     }
+
+    *{ box-sizing:border-box; }
 
     html, body{
-      height: 100%;
-      margin: 0;
-      background: #000;
-      font-family: "Space Grotesk", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+      margin:0;
+      min-height:100%;
+      background:#000;
+      color:var(--text);
+      font-family:"Space Grotesk",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
     }
-    body{ overflow-y:auto; overscroll-behavior:none; touch-action: pan-y; }
 
-    /* custom cursor */
-    html.hasCursor, html.hasCursor *{ cursor: none !important; }
-    #cursor{
-      position: fixed; left:0; top:0;
-      width: 34px; height: 34px;
-      margin-left:-17px; margin-top:-17px;
-      pointer-events:none; z-index:9999;
-      opacity:0;
-      transform: translate3d(0,0,0) rotate(0deg) scale(1);
-      filter: drop-shadow(0 10px 24px rgba(0,0,0,0.55));
-      background: center/contain no-repeat;
-      will-change: transform, opacity;
-      transition: opacity 200ms ease;
+    body{
+      overflow-y:auto;
+      overscroll-behavior:none;
+      touch-action:pan-y;
     }
+
+    html.hasCursor,
+    html.hasCursor *{
+      cursor:none !important;
+    }
+
+    #cursor{
+      position:fixed;
+      left:0;
+      top:0;
+      width:34px;
+      height:34px;
+      margin-left:-17px;
+      margin-top:-17px;
+      pointer-events:none;
+      z-index:9999;
+      opacity:0;
+      transform:translate3d(0,0,0) rotate(0deg) scale(1);
+      filter:drop-shadow(0 10px 24px rgba(0,0,0,0.55));
+      background:center/contain no-repeat;
+      will-change:transform,opacity;
+      transition:opacity 180ms ease;
+    }
+
     html.hasCursor #cursor{ opacity:1; }
 
     .bg{
-      position: fixed; inset: 0; z-index: 0;
+      position:fixed;
+      inset:0;
+      z-index:0;
       background:
-        radial-gradient(1800px 1400px at var(--bgx) var(--bgy), rgba(255,255,255,0.20), rgba(0,0,0,0) 64%),
-        radial-gradient(2000px 1600px at calc(var(--bgx) + 14%) calc(var(--bgy) + 34%), rgba(190,220,255,0.14), rgba(0,0,0,0) 70%),
-        radial-gradient(1900px 1500px at 50% 90%, rgba(255,255,255,0.08), rgba(0,0,0,0) 72%),
-        radial-gradient(circle at 50% 50%, #101014 0%, #070707 44%, #000 84%);
-      transform: scale(1.03);
+        radial-gradient(1800px 1400px at var(--bgx) var(--bgy), rgba(255,255,255,0.18), rgba(0,0,0,0) 64%),
+        radial-gradient(2100px 1600px at calc(var(--bgx) + 16%) calc(var(--bgy) + 34%), rgba(190,220,255,0.13), rgba(0,0,0,0) 70%),
+        radial-gradient(1800px 1400px at 50% 95%, rgba(255,255,255,0.06), rgba(0,0,0,0) 70%),
+        radial-gradient(circle at 50% 50%, #111216 0%, #070707 45%, #000 84%);
+      transform:scale(1.03);
     }
 
     .spot{
-      position: fixed; inset: 0; z-index: 1; pointer-events:none;
+      position:fixed;
+      inset:0;
+      z-index:1;
+      pointer-events:none;
       background:
         radial-gradient(680px 460px at var(--spotx) var(--spoty),
-          rgba(255,255,255, calc(0.13 * var(--spotOn))),
-          rgba(255,255,255,0) 62%);
-      mix-blend-mode: screen;
-      filter: blur(2px);
-      opacity: 0.9;
+        rgba(255,255,255,calc(0.13 * var(--spotOn))),
+        rgba(255,255,255,0) 62%);
+      mix-blend-mode:screen;
+      filter:blur(2px);
+      opacity:0.9;
     }
 
     .vignette{
-      position: fixed; inset: 0; z-index: 2; pointer-events:none;
-      background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.52) 86%, rgba(0,0,0,0.88) 100%);
+      position:fixed;
+      inset:0;
+      z-index:2;
+      pointer-events:none;
+      background:radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.56) 86%, rgba(0,0,0,0.90) 100%);
     }
 
     .grain{
-      position: fixed; inset: -20%; z-index: 3; pointer-events:none;
-      background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
-      opacity: 0.06;
-      mix-blend-mode: overlay;
-      transform: rotate(6deg);
+      position:fixed;
+      inset:-20%;
+      z-index:3;
+      pointer-events:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+      opacity:0.06;
+      mix-blend-mode:overlay;
+      transform:rotate(6deg);
     }
 
     .wrap{
-      position: relative;
-      z-index: 10;
-      min-height: 100svh;
-      display: grid;
-      place-items: center;
+      position:relative;
+      z-index:10;
+      min-height:100svh;
+      display:grid;
+      place-items:center;
       padding:
-        calc(22px + env(safe-area-inset-top))
+        calc(24px + env(safe-area-inset-top))
         16px
-        calc(22px + env(safe-area-inset-bottom))
+        calc(24px + env(safe-area-inset-bottom))
         16px;
-      box-sizing: border-box;
     }
 
-    /* unified layout */
     .layout{
-      width: min(980px, 96vw);
-      display: grid;
-      gap: 18px;
+      width:min(1120px, 96vw);
+      display:grid;
+      gap:22px;
     }
 
     .top{
       display:flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 12px;
-      flex-wrap: wrap;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:16px;
+      flex-wrap:wrap;
     }
 
     h1{
-      margin: 0;
-      font-size: clamp(40px, 7.2vw, 86px);
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      color: rgba(255,255,255,0.96);
-      line-height: 1.02;
-      text-shadow: 0 0 18px rgba(255,255,255,0.14), 0 22px 60px rgba(0,0,0,0.55);
+      margin:0;
+      font-size:clamp(38px, 7vw, 88px);
+      line-height:1.02;
+      font-weight:800;
+      letter-spacing:-0.03em;
+      color:rgba(255,255,255,0.96);
+      text-shadow:0 0 20px rgba(255,255,255,0.12), 0 24px 60px rgba(0,0,0,0.56);
     }
 
     .brandLine{
-      position: relative;
-      display: inline-block;
-      padding-bottom: 10px;
-      margin-top: 8px;
-      width: fit-content;
+      position:relative;
+      display:inline-block;
+      margin-top:10px;
+      padding-bottom:10px;
+      width:fit-content;
     }
+
     .brandLine .name{
-      font-family: "Oxanium","Space Grotesk",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.72);
+      font-family:"Oxanium","Space Grotesk",system-ui,sans-serif;
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:0.18em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,0.72);
     }
-    /* soft sweep under PlugIn3D */
+
     .brandLine .sweep{
       position:absolute;
       left:-6%;
       right:-6%;
       bottom:0;
-      height: 12px;
-      opacity: 0.62;
+      height:12px;
+      opacity:0.62;
       pointer-events:none;
       overflow:hidden;
-      -webkit-mask-image: radial-gradient(120% 90% at 50% 50%, #000 55%, rgba(0,0,0,0) 78%);
-      mask-image: radial-gradient(120% 90% at 50% 50%, #000 55%, rgba(0,0,0,0) 78%);
-      filter: blur(0.7px);
+      -webkit-mask-image:radial-gradient(120% 90% at 50% 50%, #000 55%, rgba(0,0,0,0) 78%);
+      mask-image:radial-gradient(120% 90% at 50% 50%, #000 55%, rgba(0,0,0,0) 78%);
+      filter:blur(0.7px);
     }
+
     .brandLine .sweep::before{
       content:"";
       position:absolute;
       top:-70%;
       left:-55%;
-      width: 55%;
-      height: 240%;
-      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.20), rgba(255,255,255,0));
-      transform: rotate(10deg);
-      animation: sweep 7.4s ease-in-out infinite;
-      filter: blur(2.1px);
-    }
-    @keyframes sweep{
-      0%   { left: -65%; opacity: 0; }
-      14%  { opacity: 1; }
-      38%  { left: 125%; opacity: 0; }
-      100% { left: 125%; opacity: 0; }
+      width:55%;
+      height:240%;
+      background:linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.20), rgba(255,255,255,0));
+      transform:rotate(10deg);
+      animation:sweep 7.4s ease-in-out infinite;
+      filter:blur(2.1px);
     }
 
-    .btnRow{ display:flex; gap:10px; flex-wrap:wrap; }
+    @keyframes sweep{
+      0%{ left:-65%; opacity:0; }
+      14%{ opacity:1; }
+      38%{ left:125%; opacity:0; }
+      100%{ left:125%; opacity:0; }
+    }
+
+    .topActions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
     .btn{
-      display:inline-flex; align-items:center; justify-content:center; gap:10px;
-      padding: 12px 14px;
-      border-radius: 18px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding:12px 15px;
+      min-height:46px;
+      border-radius:18px;
       text-decoration:none;
-      font-weight: 900;
-      color: rgba(255,255,255,0.95);
-      background: var(--btnBg);
-      border: 1px solid var(--btnBorder);
-      backdrop-filter: blur(12px);
-      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
-      -webkit-tap-highlight-color: transparent;
+      font-weight:900;
+      color:rgba(255,255,255,0.95);
+      background:var(--btnBg);
+      border:1px solid var(--btnBorder);
+      backdrop-filter:blur(12px);
+      transition:transform 90ms ease, background 180ms ease, border-color 180ms ease;
+      -webkit-tap-highlight-color:transparent;
       user-select:none;
     }
+
+    .btn:hover{
+      transform:translateY(-2px);
+      background:var(--btnBgHover);
+      border-color:var(--btnBorderHover);
+    }
+
+    .btn:active{
+      transform:translateY(0);
+    }
+
     .dot{
-      width: 8px; height: 8px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.74);
-      box-shadow: 0 0 16px rgba(255,255,255,0.20);
-    }
-    @media (hover:hover) and (pointer:fine){
-      .btn:hover{ transform: translateY(-2px); background: var(--btnBgHover); border-color: var(--btnBorderHover); }
-    }
-    .btn:active{ transform: translateY(0); }
-    
-    .muteBtn{
-      position: fixed;
-      top: calc(18px + env(safe-area-inset-top));
-      right: calc(18px + env(safe-area-inset-right));
-      z-index: 30;
-      width: 40px;
-      height: 40px;
-      padding: 0;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.20);
-      background: rgba(255,255,255,0.12);
-      color: rgba(255,255,255,0.95);
-      font-size: 20px;
-      cursor: pointer;
-      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
-      backdrop-filter: blur(12px);
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .muteBtn:hover{
-      transform: translateY(-2px);
-      background: rgba(255,255,255,0.16);
-      border-color: rgba(255,255,255,0.26);
-    }
-    .muteBtn:active{
-      transform: translateY(0);
-    }
-    .muteBtn.muted{
-      background: rgba(255,100,100,0.15);
-      border-color: rgba(255,100,100,0.3);
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:rgba(255,255,255,0.74);
+      box-shadow:0 0 16px rgba(255,255,255,0.20);
+      flex:0 0 auto;
     }
 
-    /* mobile: less bright */
-    @media (pointer: coarse){
-      :root{
-        --btnBg: rgba(255,255,255,0.085);
-        --btnBgHover: rgba(255,255,255,0.085);
-        --btnBorder: rgba(255,255,255,0.16);
-        --btnBorderHover: rgba(255,255,255,0.16);
-      }
-      .dot{ background: rgba(255,255,255,0.58); box-shadow: 0 0 10px rgba(255,255,255,0.14); }
-    }
-
-    /* stream */
-    .stream{
+    .grid{
       display:grid;
-      gap: 16px;
-      padding: 18px 0;
-      border-top: 1px solid rgba(255,255,255,0.10);
-      border-bottom: 1px solid rgba(255,255,255,0.10);
+      grid-template-columns:repeat(12, 1fr);
+      gap:14px;
     }
 
-    /* Featured YouTube */
-    .yt{
-      display:grid;
-      grid-template-columns: minmax(340px, 600px) 1fr;
-      gap: 14px;
-      align-items: center;
-      padding-bottom: 14px;
-      border-bottom: 1px solid rgba(255,255,255,0.10);
-    }
-    .thumb{
-      width: 100%;
-      aspect-ratio: 16/9;
-      border-radius: 16px;
-      overflow: hidden;
-      background: rgba(0,0,0,0.26);
-      border: 1px solid rgba(255,255,255,0.12);
-    }
-    .thumb img{ width:100%; height:100%; object-fit: cover; display:block; opacity:0.95; }
-    .ytTitle{
-      font-weight: 950;
-      font-size: 14px;
-      color: rgba(255,255,255,0.94);
-      line-height: 1.25;
-    }
-    .ytMeta{
-      margin-top: 6px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.60);
-    }
-    .ytBtns{ margin-top: 10px; display:flex; gap:10px; flex-wrap:wrap; }
-    @media (max-width: 820px){
-      .yt{ grid-template-columns: 1fr; }
+    .card{
+      position:relative;
+      overflow:hidden;
+      border-radius:24px;
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025));
+      backdrop-filter:blur(14px);
+      padding:18px;
+      min-height:160px;
     }
 
-    /* More artistic: staggered “tiles” grid (still minimal) */
-    .sectionHead{
-      display:flex;
-      align-items:flex-end;
-      justify-content: space-between;
-      gap: 12px;
-      padding-top: 2px;
-    }
-    .kicker{
-      font-size: 12px;
-      font-weight: 950;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.78);
-    }
-    .hint{
-      font-size: 12px;
-      color: rgba(255,255,255,0.52);
-      text-align: right;
-      line-height: 1.3;
-    }
-
-    .tiles{
-      display:grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 12px;
-    }
-
-    .tile{
-      position: relative;
-      display:grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      gap: 14px;
-      padding: 12px 12px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(255,255,255,0.02);
-      overflow: hidden;
-    }
-
-    /* soft glow sweep per tile (artistic, not “cardy”) */
-    .tile::before{
+    .card::before{
       content:"";
       position:absolute;
       inset:-1px;
-      border-radius: inherit;
+      border-radius:inherit;
       background:
-        radial-gradient(540px 220px at 0% 0%,
-          rgba(255,255,255,0.18),
-          rgba(255,255,255,0) 62%);
-      opacity: 0.20;
+        radial-gradient(620px 260px at 0% 0%, rgba(255,255,255,0.18), rgba(255,255,255,0) 64%);
+      opacity:0.18;
       pointer-events:none;
-      transition: opacity 180ms ease;
-    }
-    @media (hover:hover) and (pointer:fine){
-      .tile:hover::before{ opacity: 0.48; }
-      .tile:hover{ border-color: rgba(255,255,255,0.18); }
+      transition:opacity 180ms ease;
     }
 
-    .tile .left{ display:grid; gap: 6px; }
-    .label{
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.78);
-    }
-    .desc{
-      font-size: 13px;
-      color: rgba(255,255,255,0.62);
-      line-height: 1.45;
+    .card:hover::before{ opacity:0.42; }
+    .card:hover{ border-color:var(--border-strong); }
+
+    .cardInner{
+      position:relative;
+      z-index:1;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      gap:16px;
     }
 
-    /* stagger spans */
-    .span-wide{ grid-column: span 7; }
-    .span-narrow{ grid-column: span 5; }
-    .span-full{ grid-column: 1 / -1; }
-
-    @media (max-width: 900px){
-      .span-wide, .span-narrow{ grid-column: span 6; }
+    .hero{
+      grid-column:span 12;
+      min-height:320px;
+      padding:24px;
+      border-radius:30px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)),
+        radial-gradient(900px 400px at 0% 0%, rgba(255,255,255,0.12), rgba(255,255,255,0) 60%);
+      border-color:rgba(255,255,255,0.16);
     }
-    @media (max-width: 640px){
-      .tiles{ grid-template-columns: 1fr; }
-      .span-wide, .span-narrow, .span-full{ grid-column: 1 / -1; }
-      .sectionHead{ align-items: flex-start; }
-      .hint{ text-align:left; }
+
+    .hero .eyebrow,
+    .sectionLabel{
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:0.18em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,0.76);
+    }
+
+    .heroTitle{
+      margin:0;
+      font-size:clamp(32px, 5vw, 60px);
+      line-height:0.98;
+      font-weight:800;
+      letter-spacing:-0.04em;
+      max-width:8ch;
+    }
+
+    .heroDesc{
+      max-width:620px;
+      font-size:16px;
+      line-height:1.55;
+      color:var(--muted);
+      margin:0;
+    }
+
+    .heroButtons{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .feature{
+      grid-column:span 8;
+      min-height:280px;
+      padding:0;
+    }
+
+    .featureLayout{
+      display:grid;
+      grid-template-columns:minmax(280px, 1.05fr) 1fr;
+      min-height:280px;
+      height:100%;
+    }
+
+    .featureMedia{
+      position:relative;
+      min-height:260px;
+      border-right:1px solid rgba(255,255,255,0.10);
+      background:rgba(255,255,255,0.03);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+
+    .featureMedia img{
+      width:100%;
+      height:100%;
+      max-width:100%;
+      max-height:100%;
+      object-fit:contain;
+      display:block;
+      opacity:0.95;
+    }
+
+    .featureContent{
+      padding:20px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      gap:14px;
+    }
+
+    .featureTitle,
+    .cardTitle{
+      margin:0;
+      font-weight:800;
+      letter-spacing:-0.02em;
+      color:rgba(255,255,255,0.96);
+    }
+
+    .featureTitle{
+      font-size:clamp(24px, 2.5vw, 34px);
+      line-height:1.04;
+    }
+
+    .cardTitle{
+      font-size:clamp(22px, 2vw, 30px);
+      line-height:1.08;
+    }
+
+    .featureDesc,
+    .cardDesc{
+      margin:0;
+      color:var(--muted);
+      line-height:1.5;
+      font-size:14px;
+    }
+
+    .meta{
+      font-size:12px;
+      color:rgba(255,255,255,0.52);
+    }
+
+    .product{
+      grid-column:span 4;
+      min-height:280px;
+    }
+
+    .instagram{
+      grid-column:span 6;
+      min-height:190px;
+    }
+
+    .discord{
+      grid-column:span 3;
+      min-height:190px;
+    }
+
+    .tiktok{
+      grid-column:span 3;
+      min-height:190px;
     }
 
     .footerNote{
-      font-size: 12px;
-      color: rgba(255,255,255,0.52);
-      line-height: 1.45;
-      text-align: left;
+      font-size:12px;
+      color:rgba(255,255,255,0.52);
+      line-height:1.45;
+    }
+
+    .muteBtn{
+      position:fixed;
+      top:calc(18px + env(safe-area-inset-top));
+      right:calc(18px + env(safe-area-inset-right));
+      z-index:30;
+      width:40px;
+      height:40px;
+      padding:0;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.20);
+      background:rgba(255,255,255,0.12);
+      color:rgba(255,255,255,0.95);
+      font-size:20px;
+      backdrop-filter:blur(12px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition:transform 180ms ease, background 180ms ease, border-color 180ms ease;
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .muteBtn:hover{
+      transform:translateY(-2px);
+      background:rgba(255,255,255,0.16);
+      border-color:rgba(255,255,255,0.26);
+    }
+
+    .muteBtn:active{ transform:translateY(0); }
+
+    .muteBtn.muted{
+      background:rgba(255,100,100,0.15);
+      border-color:rgba(255,100,100,0.3);
+    }
+
+    @media (max-width: 980px){
+      .feature{ grid-column:span 12; }
+      .product{ grid-column:span 12; }
+      .instagram{ grid-column:span 12; }
+      .discord{ grid-column:span 6; }
+      .tiktok{ grid-column:span 6; }
+    }
+
+    @media (max-width: 760px){
+      .featureLayout{
+        grid-template-columns:1fr;
+      }
+
+      .featureMedia{
+        min-height:240px;
+        border-right:none;
+        border-bottom:1px solid rgba(255,255,255,0.10);
+      }
+
+      .hero{
+        min-height:280px;
+      }
+    }
+
+    @media (max-width: 640px){
+      .grid{
+        grid-template-columns:1fr;
+      }
+
+      .hero,
+      .feature,
+      .product,
+      .instagram,
+      .discord,
+      .tiktok{
+        grid-column:1 / -1;
+      }
+
+      .top{
+        align-items:flex-start;
+      }
+    }
+
+    @media (pointer:coarse){
+      :root{
+        --btnBg: rgba(255,255,255,0.09);
+        --btnBgHover: rgba(255,255,255,0.09);
+        --btnBorder: rgba(255,255,255,0.16);
+        --btnBorderHover: rgba(255,255,255,0.16);
+      }
+
+      .dot{
+        background:rgba(255,255,255,0.58);
+        box-shadow:0 0 10px rgba(255,255,255,0.14);
+      }
     }
   </style>
 </head>
@@ -390,7 +533,7 @@
   <div id="cursor" aria-hidden="true"></div>
 
   <div class="bg"></div>
-  <div class="spot" id="spot"></div>
+  <div class="spot"></div>
   <div class="vignette"></div>
   <div class="grain"></div>
 
@@ -405,80 +548,133 @@
           </div>
         </div>
 
-        <!-- main page: Demo + About Me + Back -->
-        <div class="btnRow">
+        <div class="topActions">
           <a class="btn" href="videos.html?autoplay=1"><span class="dot"></span> Demo</a>
           <a class="btn" href="aboutme.html"><span class="dot"></span> About Me</a>
           <a class="btn" href="index.html"><span class="dot"></span> Back</a>
         </div>
       </header>
 
-      <section class="stream" aria-label="Content">
-        <div class="yt">
-          <a class="thumb" id="ytLink" href="https://www.youtube.com/@plugin3d" target="_blank" rel="noopener">
-            <img id="ytThumb" alt="Latest YouTube thumbnail" loading="lazy" decoding="async">
-          </a>
-          <div>
-            <div class="label">YouTube — Latest Upload</div>
-            <div class="ytTitle" id="ytTitle">Loading…</div>
-            <div class="ytMeta" id="ytDate"></div>
-            <div class="ytBtns">
-              <a class="btn" id="ytWatch" href="https://www.youtube.com/@plugin3d" target="_blank" rel="noopener"><span class="dot"></span> Watch</a>
-              <a class="btn" href="https://www.youtube.com/@plugin3d" target="_blank" rel="noopener"><span class="dot"></span> Channel</a>
+      <section class="grid" aria-label="Main links">
+        <article class="card hero">
+          <div class="cardInner">
+            <div>
+              <div class="eyebrow">Most Important</div>
+              <h2 class="heroTitle">Patreon — Download Files</h2>
+            </div>
+
+            <p class="heroDesc">
+              Get scenes, assets, project files, breakdowns, and deeper content beyond short posts.
+            </p>
+
+            <div class="heroButtons">
+              <a class="btn" href="https://patreon.com/plugin3d" target="_blank" rel="noopener">
+                <span class="dot"></span> Join Patreon
+              </a>
             </div>
           </div>
-        </div>
+        </article>
 
-        <div class="sectionHead" aria-hidden="false">
-          <div class="kicker">Hire • Shop • Follow</div>
-          <div class="hint">Pick a path — DM, buy add-ons, or join the community.</div>
-        </div>
+        <article class="card feature">
+          <div class="featureLayout">
+            <a class="featureMedia" id="ytLink" href="https://www.youtube.com/@plugin3dstudio/videos" target="_blank" rel="noopener" aria-label="Open latest YouTube project">
+              <img src="channels4_profile2.png" alt="PlugIn3D Studio profile image" loading="lazy" decoding="async">
+            </a>
 
-        <div class="tiles" aria-label="Links">
-          <div class="tile span-wide">
-            <div class="left">
-              <div class="label">Instagram — DM to Work</div>
-              <div class="desc">Fastest way to start a project. Send refs + deadline.</div>
+            <div class="featureContent">
+              <div>
+                <div class="sectionLabel">Latest Long-Form Upload</div>
+                <h2 class="featureTitle" id="ytTitle">PlugIn3D Studio - Watch Last Project</h2>
+                <p class="featureDesc">
+                  Open the latest full project video from the channel. Shorts are excluded.
+                </p>
+                <div class="meta" id="ytDate"></div>
+              </div>
+
+              <div>
+                <a class="btn" id="ytWatch" href="https://www.youtube.com/@plugin3dstudio/videos" target="_blank" rel="noopener">
+                  <span class="dot"></span> Watch Last Project
+                </a>
+              </div>
             </div>
-            <a class="btn" href="https://www.instagram.com/plugin3d/" target="_blank" rel="noopener"><span class="dot"></span> DM</a>
           </div>
+        </article>
 
-          <div class="tile span-narrow">
-            <div class="left">
-              <div class="label">Superhive — Buy My Add-ons</div>
-              <div class="desc">Marketplace page for add-ons & releases.</div>
+        <article class="card product">
+          <div class="cardInner">
+            <div>
+              <div class="sectionLabel">Blender Add-on</div>
+              <h2 class="cardTitle">ProxyBody</h2>
+              <p class="cardDesc">
+                Creates lightweight proxy meshes for faster, smoother rigid body simulations in Blender.
+              </p>
             </div>
-            <a class="btn" href="https://superhivemarket.com/creators/dinisaddons" target="_blank" rel="noopener"><span class="dot"></span> Shop</a>
-          </div>
 
-          <div class="tile span-narrow">
-            <div class="left">
-              <div class="label">Patreon — Download Files</div>
-              <div class="desc">Scenes, assets, breakdowns, project files.</div>
+            <div>
+              <a class="btn" href="https://superhivemarket.com/products/proxybody" target="_blank" rel="noopener">
+                <span class="dot"></span> Buy ProxyBody
+              </a>
             </div>
-            <a class="btn" href="https://patreon.com/plugin3d" target="_blank" rel="noopener"><span class="dot"></span> Join</a>
           </div>
+        </article>
 
-          <div class="tile span-wide">
-            <div class="left">
-              <div class="label">Discord — Community</div>
-              <div class="desc">Updates, feedback, behind-the-scenes.</div>
+        <article class="card instagram">
+          <div class="cardInner">
+            <div>
+              <div class="sectionLabel">Work With Me</div>
+              <h2 class="cardTitle">Commission Visual Work</h2>
+              <p class="cardDesc">
+                For client projects, collaborations, and custom visual work, contact me directly on Instagram.
+              </p>
             </div>
-            <a class="btn" href="https://discord.gg/C2QXN9uZRw" target="_blank" rel="noopener"><span class="dot"></span> Discord</a>
-          </div>
 
-          <div class="tile span-full">
-            <div class="left">
-              <div class="label">TikTok — Process</div>
-              <div class="desc">Short BTS clips + quick techniques.</div>
+            <div>
+              <a class="btn" href="https://www.instagram.com/plugin3d/" target="_blank" rel="noopener">
+                <span class="dot"></span> Message on Instagram
+              </a>
             </div>
-            <a class="btn" href="https://www.tiktok.com/@plugin3d" target="_blank" rel="noopener"><span class="dot"></span> Open</a>
           </div>
-        </div>
+        </article>
+
+        <article class="card discord">
+          <div class="cardInner">
+            <div>
+              <div class="sectionLabel">Community</div>
+              <h2 class="cardTitle">Discord</h2>
+              <p class="cardDesc">
+                Updates, feedback, and behind-the-scenes.
+              </p>
+            </div>
+
+            <div>
+              <a class="btn" href="https://discord.gg/C2QXN9uZRw" target="_blank" rel="noopener">
+                <span class="dot"></span> Join
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="card tiktok">
+          <div class="cardInner">
+            <div>
+              <div class="sectionLabel">Short Form</div>
+              <h2 class="cardTitle">TikTok</h2>
+              <p class="cardDesc">
+                Quick process clips and techniques.
+              </p>
+            </div>
+
+            <div>
+              <a class="btn" href="https://www.tiktok.com/@plugin3d" target="_blank" rel="noopener">
+                <span class="dot"></span> Open
+              </a>
+            </div>
+          </div>
+        </article>
       </section>
 
       <div class="footerNote">
-        Tip: Hiring? DM on Instagram with budget range + references. Want tools? Grab my add-ons on Superhive.
+        Patreon is the main hub for files and deeper content. For commissioned work, reach out on Instagram.
       </div>
     </section>
   </main>
@@ -488,60 +684,56 @@
   <script>
     const isMobile = matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0;
 
-    function setVar(name, value){ document.documentElement.style.setProperty(name, value); }
+    function setVar(name, value){
+      document.documentElement.style.setProperty(name, value);
+    }
 
-    // ===== reliable audio playback =====
-    let audioEnabled = sessionStorage.getItem('audioEnabled') === 'true';
-    
+    // ===== audio =====
+    let audioEnabled = sessionStorage.getItem("audioEnabled") === "true";
+
     function enableAudio(){
       if (audioEnabled) return;
       audioEnabled = true;
-      sessionStorage.setItem('audioEnabled', 'true');
-      // Warm up audio context
+      sessionStorage.setItem("audioEnabled", "true");
       const dummy = new Audio();
       dummy.volume = 0;
       dummy.play().catch(()=>{});
     }
-    
-    // Try to enable immediately with a tiny delay to allow user gesture detection
+
     setTimeout(() => {
       if (!audioEnabled) enableAudio();
     }, 100);
-    
-    // Also enable on first user interaction
-    ['click', 'keydown', 'touchstart', 'touchend', 'scroll'].forEach(event => {
-      document.addEventListener(event, enableAudio, { once: true });
+
+    ["click", "keydown", "touchstart", "touchend", "scroll"].forEach(event => {
+      document.addEventListener(event, enableAudio, { once:true });
     });
 
     function playSound(filename, volume = 0.6){
       if (!audioEnabled) return;
-      try {
+      try{
         const url = new URL(filename, location.href).href;
         const audio = new Audio(url);
         audio.volume = volume;
-        audio.preload = 'auto';
-        audio.onerror = () => console.error(`Audio failed to load: ${filename}`);
+        audio.preload = "auto";
         const playPromise = audio.play();
-        if (playPromise && playPromise.catch) {
-          playPromise.catch(e => console.warn(`Audio playback failed: ${e.message}`));
+        if (playPromise && playPromise.catch){
+          playPromise.catch(()=>{});
         }
-      } catch (e) {
-        console.error(`Error playing sound: ${e.message}`);
-      }
+      }catch(e){}
     }
 
-    // spotlight cursor (desktop)
+    // ===== spotlight =====
     if (!isMobile){
       setVar("--spotOn", "1");
       addEventListener("pointermove", (e) => {
-        setVar("--spotx", `${((e.clientX / innerWidth)*100).toFixed(2)}%`);
-        setVar("--spoty", `${((e.clientY / innerHeight)*100).toFixed(2)}%`);
+        setVar("--spotx", `${((e.clientX / innerWidth) * 100).toFixed(2)}%`);
+        setVar("--spoty", `${((e.clientY / innerHeight) * 100).toFixed(2)}%`);
       }, { passive:true });
     } else {
       setVar("--spotOn", "0");
     }
 
-    // subtle background drift
+    // ===== subtle background drift =====
     function drift(t){
       const tt = t * 0.00022;
       const x = Math.sin(tt) * 0.9;
@@ -552,118 +744,157 @@
     }
     requestAnimationFrame(drift);
 
-    // Latest YouTube video (RSS -> thumbnail). No API key.
-    const YT_CHANNEL_ID = "UCAL0W54gbuHaebq4nLkLs1w";
-    const FEED = `https://www.youtube.com/feeds/videos.xml?channel_id=${YT_CHANNEL_ID}`;
-
-    const ytLink  = document.getElementById("ytLink");
+    // ===== latest long-form YouTube video =====
+    // Uses the videos page HTML instead of the RSS feed so we can avoid Shorts.
+    const CHANNEL_VIDEOS_URL = "https://www.youtube.com/@plugin3dstudio/videos";
+    const ytLink = document.getElementById("ytLink");
     const ytWatch = document.getElementById("ytWatch");
-    const ytThumb = document.getElementById("ytThumb");
     const ytTitle = document.getElementById("ytTitle");
-    const ytDate  = document.getElementById("ytDate");
+    const ytDate = document.getElementById("ytDate");
 
-    function fmtDate(iso){
-      try{
-        const d = new Date(iso);
-        return d.toLocaleDateString(undefined, { year:"numeric", month:"short", day:"2-digit" });
-      }catch{ return ""; }
+    function fmtDateText(value){
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return "";
+      return d.toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "2-digit"
+      });
     }
 
     async function fetchText(url){
-      const r = await fetch(url, { cache: "no-store" });
+      const r = await fetch(url, { cache:"no-store" });
       if (!r.ok) throw new Error("HTTP " + r.status);
       return await r.text();
     }
 
+    function decodeEscapedJsonText(str){
+      return str
+        .replace(/\\u0026/g, "&")
+        .replace(/\\u003d/g, "=")
+        .replace(/\\u002f/g, "/")
+        .replace(/\\"/g, '"');
+    }
+
+    function extractLatestRegularVideo(html){
+      const matches = [...html.matchAll(/"videoRenderer":\s*({.*?})\s*,\s*"trackingParams"/g)];
+      for (const match of matches){
+        const block = match[1];
+
+        const videoIdMatch = block.match(/"videoId":"([^"]+)"/);
+        if (!videoIdMatch) continue;
+
+        const videoId = videoIdMatch[1];
+
+        const titleMatch = block.match(/"title":\{"runs":\[\{"text":"([^"]+)"/);
+        const publishedMatch = block.match(/"publishedTimeText":\{"simpleText":"([^"]+)"/);
+
+        return {
+          videoId,
+          title: titleMatch ? decodeEscapedJsonText(titleMatch[1]) : "PlugIn3D Studio - Watch Last Project",
+          publishedText: publishedMatch ? decodeEscapedJsonText(publishedMatch[1]) : ""
+        };
+      }
+      return null;
+    }
+
     async function loadLatestYouTube(){
       const tries = [
-        FEED,
-        `https://corsproxy.io/?${encodeURIComponent(FEED)}`
+        `https://corsproxy.io/?${encodeURIComponent(CHANNEL_VIDEOS_URL)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(CHANNEL_VIDEOS_URL)}`
       ];
 
-      let xmlText = null;
-      for (const u of tries){
-        try{ xmlText = await fetchText(u); if (xmlText) break; }catch{}
+      let html = null;
+
+      for (const url of tries){
+        try{
+          html = await fetchText(url);
+          if (html && html.length > 1000) break;
+        }catch(e){}
       }
 
-      if (!xmlText){
-        ytTitle.textContent = "Open channel";
-        ytDate.textContent = "";
-        ytThumb.alt = "YouTube";
-        return;
-      }
-
-      const xml = new DOMParser().parseFromString(xmlText, "text/xml");
-      const entry = xml.querySelector("entry");
-      if (!entry){
-        ytTitle.textContent = "Open channel";
+      if (!html){
+        ytLink.href = CHANNEL_VIDEOS_URL;
+        ytWatch.href = CHANNEL_VIDEOS_URL;
+        ytTitle.textContent = "PlugIn3D Studio - Watch Last Project";
         ytDate.textContent = "";
         return;
       }
 
-      const vid =
-        entry.querySelector("yt\\:videoId")?.textContent?.trim() ||
-        entry.querySelector("videoId")?.textContent?.trim();
+      const latest = extractLatestRegularVideo(html);
 
-      const title = entry.querySelector("title")?.textContent?.trim() || "Latest upload";
-      const published = entry.querySelector("published")?.textContent?.trim() || "";
-
-      ytTitle.textContent = title;
-      ytDate.textContent = published ? fmtDate(published) : "";
-
-      if (vid){
-        const watchUrl = `https://www.youtube.com/watch?v=${vid}`;
-        ytLink.href = watchUrl;
-        ytWatch.href = watchUrl;
-
-        const maxres = `https://i.ytimg.com/vi/${vid}/maxresdefault.jpg`;
-        const hq = `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`;
-
-        ytThumb.src = maxres;
-        ytThumb.onerror = () => { ytThumb.onerror = null; ytThumb.src = hq; };
+      if (!latest || !latest.videoId){
+        ytLink.href = CHANNEL_VIDEOS_URL;
+        ytWatch.href = CHANNEL_VIDEOS_URL;
+        ytTitle.textContent = "PlugIn3D Studio - Watch Last Project";
+        ytDate.textContent = "";
+        return;
       }
+
+      const watchUrl = `https://www.youtube.com/watch?v=${latest.videoId}`;
+
+      ytLink.href = watchUrl;
+      ytWatch.href = watchUrl;
+      ytTitle.textContent = "PlugIn3D Studio - Watch Last Project";
+      ytDate.textContent = latest.publishedText || "";
     }
+
     loadLatestYouTube();
 
-    // ===== cursor (logo.png) with motion =====
+    // ===== custom cursor =====
     async function exists(relPath){
       const url = new URL(relPath, location.href).href;
       try{
         const head = await fetch(url, { method:"HEAD", cache:"no-store" });
         if (head.ok) return url;
-        const get = await fetch(url, { method:"GET", cache:"no-store", headers:{ "Range":"bytes=0-0" }});
+
+        const get = await fetch(url, {
+          method:"GET",
+          cache:"no-store",
+          headers:{ "Range":"bytes=0-0" }
+        });
         return get.ok ? url : null;
-      }catch{ return null; }
+      }catch{
+        return null;
+      }
     }
 
     (function setupCursor(){
       if (isMobile) return;
 
       const cursorEl = document.getElementById("cursor");
-      const CANDIDATES = ["model/logo.png", "logo.png"];
+      const candidates = ["model/logo.png", "logo.png"];
 
       async function pickCursor(){
-        for (const rel of CANDIDATES){
+        for (const rel of candidates){
           const url = await exists(rel);
           if (url) return url;
         }
         return null;
       }
 
-      let targetX = innerWidth * 0.5, targetY = innerHeight * 0.5;
-      let cx = targetX, cy = targetY;
-      let vx = 0, vy = 0;
+      let targetX = innerWidth * 0.5;
+      let targetY = innerHeight * 0.5;
+      let cx = targetX;
+      let cy = targetY;
+      let vx = 0;
+      let vy = 0;
       let rot = 0;
       let pulse = 0;
 
-      addEventListener("pointermove", (e) => { targetX = e.clientX; targetY = e.clientY; }, { passive:true });
-      addEventListener("pointerdown", () => { pulse = 1; }, { passive:true });
+      addEventListener("pointermove", (e) => {
+        targetX = e.clientX;
+        targetY = e.clientY;
+      }, { passive:true });
+
+      addEventListener("pointerdown", () => {
+        pulse = 1;
+      }, { passive:true });
 
       function tick(){
         const dx = targetX - cx;
         const dy = targetY - cy;
 
-        // faster, tighter following
         vx = vx * 0.60 + dx * 0.40;
         vy = vy * 0.60 + dy * 0.40;
 
@@ -671,14 +902,12 @@
         cy += vy;
 
         const speed = Math.min(38, Math.hypot(vx, vy));
-
         const tt = performance.now() * 0.002;
         const breathe = 1 + Math.sin(tt) * 0.03;
 
         pulse *= 0.82;
         const scale = breathe * (1 + speed * 0.003) * (1 + pulse * 0.18);
 
-        // constant slow rotation
         rot = (rot + 0.35) % 360;
 
         cursorEl.style.transform =
@@ -689,6 +918,7 @@
 
       pickCursor().then((url) => {
         if (!url) return;
+
         const img = new Image();
         img.src = url;
         img.onload = () => {
@@ -700,46 +930,48 @@
     })();
 
     // ===== mute button =====
-    const muteBtn = document.getElementById('muteBtn');
+    const muteBtn = document.getElementById("muteBtn");
+
     function updateMuteButtonUI(){
       if (audioEnabled){
-        muteBtn.textContent = '🔊';
-        muteBtn.classList.remove('muted');
+        muteBtn.textContent = "🔊";
+        muteBtn.classList.remove("muted");
       } else {
-        muteBtn.textContent = '🔇';
-        muteBtn.classList.add('muted');
+        muteBtn.textContent = "🔇";
+        muteBtn.classList.add("muted");
       }
     }
+
     updateMuteButtonUI();
-    muteBtn.addEventListener('click', (e) => {
+
+    muteBtn.addEventListener("click", (e) => {
       e.preventDefault();
       audioEnabled = !audioEnabled;
-      sessionStorage.setItem('audioEnabled', audioEnabled ? 'true' : 'false');
+      sessionStorage.setItem("audioEnabled", audioEnabled ? "true" : "false");
       updateMuteButtonUI();
+
       if (audioEnabled){
         playSound("User Interface, Beep, Button, Short, Tonal, Soft, Tone Up SND68367.wav", 0.6);
       }
     });
 
-    // ===== button hover sound =====
-    document.querySelectorAll('.btn:not(.muteBtn)').forEach(btn => {
-      btn.addEventListener('mouseenter', () => {
+    // ===== button sounds =====
+    document.querySelectorAll(".btn:not(.muteBtn)").forEach(btn => {
+      btn.addEventListener("mouseenter", () => {
         playSound("User Interface, Beep, Button, Chord, Low, Soft, Wobbling SND68401.wav", 0.5);
       });
-      // click sound (except Back buttons)
-      btn.addEventListener('click', () => {
-        if (!btn.textContent.includes('Back')){
+
+      btn.addEventListener("click", () => {
+        if (!btn.textContent.includes("Back")){
           playSound("User Interface, Beep, Button, Short, Tonal, Soft, Tone Up SND68367.wav", 0.6);
         } else {
-          // Back button: set flag for sound on next page
-          sessionStorage.setItem('playBackSound', 'true');
+          sessionStorage.setItem("playBackSound", "true");
         }
       });
     });
 
-    // ===== play sound if arriving from back button =====
-    if (sessionStorage.getItem('playBackSound') === 'true'){
-      sessionStorage.removeItem('playBackSound');
+    if (sessionStorage.getItem("playBackSound") === "true"){
+      sessionStorage.removeItem("playBackSound");
       setTimeout(() => {
         playSound("User Interface, Beep, Button, Chord, Up Down, Soft SND68399.wav", 0.6);
       }, 100);
