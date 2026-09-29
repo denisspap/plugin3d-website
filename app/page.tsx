@@ -4,16 +4,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { frames, projectImage } from '@/lib/content';
 
 export default function Home() {
-  const [current, setCurrent] = useState(0);
+  const [current, setCurrent] = useState<number | null>(null);
   const [previous, setPrevious] = useState<number | null>(null);
   const [paused, setPaused] = useState(false);
   const [ready, setReady] = useState(false);
   const [hidden, setHidden] = useState(false);
   const bag = useRef<number[]>([]);
-  const index = useRef(0);
+  const index = useRef(-1);
   const loading = useRef(false);
   const mounted = useRef(true);
-  const frame = frames[current];
+  const frame = current === null ? null : frames[current];
   const show = useCallback(async (target: number) => {
     if (loading.current || target === index.current) return;
     loading.current = true;
@@ -40,6 +40,16 @@ export default function Home() {
   }, [show]);
   useEffect(() => {
     mounted.current = true;
+    let lastOpening = -1;
+    try {
+      const saved = sessionStorage.getItem('plugin3d-opening-frame');
+      if (saved !== null) lastOpening = Number(saved);
+    } catch { /* The slideshow also works when browser storage is unavailable. */ }
+    const choices = frames.map((_, i) => i).filter(i => i !== lastOpening);
+    const opening = choices[Math.floor(Math.random() * choices.length)] ?? 0;
+    index.current = opening;
+    setCurrent(opening);
+    try { sessionStorage.setItem('plugin3d-opening-frame', String(opening)); } catch {}
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
     setPaused(motion.matches);
     const onMotion = () => setPaused(motion.matches);
@@ -60,14 +70,14 @@ export default function Home() {
   }, [ready]);
   return <main id="main-content" className="home">
     <section className="hero" aria-label="Projects">
-      <Link className="hero-image-link" href={`/projects/${frame.film.slug}/`} aria-label={`View ${frame.film.title}`}>
+      {frame && <Link className="hero-image-link" href={`/projects/${frame.film.slug}/`} aria-label={`View ${frame.film.title}`}>
         {previous !== null && <img className="hero-image previous-image" src={projectImage(frames[previous].film, frames[previous].frame)} alt="" style={{ objectPosition: frames[previous].film.focus }} />}
         <img key={current} className={`hero-image ${previous !== null ? 'entering' : ''}`} src={projectImage(frame.film, frame.frame)} alt={`${frame.film.title} — a frame by Dinis Pereira`} style={{ objectPosition: frame.film.focus }} fetchPriority="high" onLoad={() => setReady(true)} />
         <div className="hero-shade" />
-      </Link>
+      </Link>}
       <div className="hero-identity"><h1>Dinis Pereira</h1><p className="identity-subtitle">PlugIn3D</p></div>
       <div className="hero-bottom">
-        <Link href={`/projects/${frame.film.slug}/`} className="hero-project" key={frame.film.slug}><h2>{frame.film.title}</h2><p>{frame.film.category}</p></Link>
+        {frame && <Link href={`/projects/${frame.film.slug}/`} className="hero-project" key={frame.film.slug}><h2>{frame.film.title}</h2><p>{frame.film.category}</p></Link>}
       </div>
     </section>
   </main>;

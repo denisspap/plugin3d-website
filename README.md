@@ -31,14 +31,14 @@ The source repository is https://github.com/denisspap/plugin3d-website. GitHub P
 - `lib/content.ts`: project titles, summaries, detailed descriptions, social links, product text, and image counts.
 - `app/about/page.tsx`: the draft biography.
 - `app/globals.css`: design, spacing, responsive layouts, and transitions.
-- `app/page.tsx`: homepage slideshow. It chooses randomized images at 4-second intervals, with a 1.15-second crossfade. It avoids immediate repeats, pauses in background tabs, and starts paused for visitors who request reduced motion.
+- `app/page.tsx`: homepage slideshow. It starts with a random image on every visit or reload, avoids repeating the previous opening image in the same tab, and chooses randomized images at 4-second intervals, with a 1.15-second crossfade. It avoids immediate repeats, pauses in background tabs, and starts paused for visitors who request reduced motion.
 - `public/projects`: all 19 supplied images in optimized WebP format, plus small versions for thumbnails.
 - `public/tools`: the three official Superhive product covers.
 - `public/models`: model cover images from Superhive.
 - `lib/catalog.ts`: Making of posts and 3D model details.
 - `public/plugin3d-logo.png`: transparent logo used in the header and About page.
 
-Each project has a real static URL under `/projects/project-name/`, with its own gallery and page title. Making of lists eight specified Patreon posts, shuffled on each visit with direct links. 3D Models lists the three Superhive models. Contact shows only email and an Instagram message link (Instagram may require login). YouTube videos are embedded on matching project pages, including Partycles on Ring; Instagram videos use links only.
+Each project has a real static URL under `/projects/project-name/`, with its own gallery and page title. Making of lists eight specified Patreon posts, shuffled on each visit with direct links. 3D models and tools combines the three Superhive models and three Blender tools at `/tools/`; the previous `/models/` address forwards there. Contact shows only email and an Instagram message link (Instagram may require login). YouTube videos are embedded on matching project pages, including Partycles on Ring; Instagram videos use links only.
 
 The original PNG images were not modified. To regenerate the optimized versions locally, run `node scripts/prepare-images.mjs "PATH_TO_ORIGINAL_IMAGES"`; the product originals must also be available in `work/product-assets`. Regeneration is not needed for deployment: the optimized files are already included.
 

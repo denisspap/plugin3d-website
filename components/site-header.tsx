@@ -21,8 +21,7 @@ export function SiteHeader() {
       <Link href="/" aria-current={path === '/' ? 'page' : undefined}>Main page</Link>
       <Link href="/projects/" aria-current={path.startsWith('/projects') ? 'page' : undefined}>Projects</Link>
       <Link href="/making-of/" aria-current={path.startsWith('/making-of') ? 'page' : undefined}>Making of</Link>
-      <Link href="/tools/" aria-current={path.startsWith('/tools') ? 'page' : undefined}>Tools</Link>
-      <Link href="/models/" aria-current={path.startsWith('/models') ? 'page' : undefined}>3D Models</Link>
+      <Link href="/tools/" aria-current={path.startsWith('/tools') || path.startsWith('/models') ? 'page' : undefined}>3D models and tools</Link>
       <Link href="/about/" aria-current={path.startsWith('/about') ? 'page' : undefined}>About me</Link>
       <Link className="contact-nav" href="/contact/" aria-current={path.startsWith('/contact') ? 'page' : undefined}>Contact me</Link>
     </nav>
