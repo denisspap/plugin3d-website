@@ -24,6 +24,8 @@ Open http://127.0.0.1:4173/. Keep the preview command running while viewing the 
 
 The workflow automatically sets the correct path for both `username.github.io` and `username.github.io/repository-name`. Custom domains configured in GitHub Pages are supported by the same workflow.
 
+Deployments carry forward hashed CSS and JavaScript from the last three available successful Pages artifacts, so cached HTML keeps working after an update. Pages artifacts are retained for 30 days.
+
 The source repository is https://github.com/denisspap/plugin3d-website. GitHub Pages uses the included workflow and retains the custom domain `plugin3d.studio`. Push changes to `main` to publish an update; check the Actions tab for build and deployment results.
 
 ## Edit content

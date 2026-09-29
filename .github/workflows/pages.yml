@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 concurrency:
@@ -31,9 +32,14 @@ jobs:
         run: node scripts/check-export.mjs
         env:
           NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+      - name: Preserve assets used by cached pages
+        run: node scripts/preserve-static-assets.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: out
+          retention-days: 30
   deploy:
     environment:
       name: github-pages
