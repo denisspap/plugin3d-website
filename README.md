@@ -33,7 +33,7 @@ The source repository is https://github.com/denisspap/plugin3d-website. GitHub P
 - `lib/content.ts`: project titles, summaries, detailed descriptions, social links, product text, and image counts.
 - `app/about/page.tsx`: the draft biography.
 - `app/globals.css`: design, spacing, responsive layouts, and transitions.
-- `app/page.tsx`: homepage slideshow. It starts with a random image on every visit or reload, avoids repeating the previous opening image in the same tab, and chooses randomized images at 4-second intervals, with a 1.15-second crossfade. It avoids immediate repeats, pauses in background tabs, and starts paused for visitors who request reduced motion.
+- `app/page.tsx`: homepage slideshow. It starts with a random image on every visit or reload, avoids repeating the previous opening image in the same tab, and chooses randomized images at 4-second intervals, with a 1.15-second crossfade. Mouse-wheel scrolling and vertical touch swipes move through the images. It avoids immediate repeats, pauses in background tabs, and starts paused for visitors who request reduced motion.
 - `public/projects`: all 19 supplied images in optimized WebP format, plus small versions for thumbnails.
 - `public/tools`: the three official Superhive product covers.
 - `public/models`: model cover images from Superhive.
@@ -46,4 +46,4 @@ The original PNG images were not modified. To regenerate the optimized versions 
 
 ## Research and copy
 
-See `CONTENT-SOURCES.md` for provenance and editorial assumptions. TikTok is omitted until its profile is confirmed. LinkedIn was supplied directly by Dinis. About text is a draft for the owner to review. No client credits, awards, commercial partnerships, or employment history have been invented.
+See `CONTENT-SOURCES.md` for provenance and editorial assumptions. TikTok is omitted until its profile is confirmed. About text is a draft for the owner to review. No client credits, awards, commercial partnerships, or employment history have been invented.

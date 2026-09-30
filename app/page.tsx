@@ -13,8 +13,12 @@ export default function Home() {
   const index = useRef(-1);
   const loading = useRef(false);
   const mounted = useRef(true);
+  const hero = useRef<HTMLElement>(null);
+  const history = useRef<number[]>([]);
+  const historyPosition = useRef(0);
+  const suppressClickUntil = useRef(0);
   const frame = current === null ? null : frames[current];
-  const show = useCallback(async (target: number) => {
+  const show = useCallback(async (target: number, position?: number) => {
     if (loading.current || target === index.current) return;
     loading.current = true;
     const image = new Image();
@@ -23,11 +27,20 @@ export default function Home() {
     if (!mounted.current) return;
     setPrevious(index.current);
     index.current = target;
+    if (position !== undefined) historyPosition.current = position;
+    else {
+      history.current = [...history.current.slice(0, historyPosition.current + 1), target];
+      historyPosition.current = history.current.length - 1;
+    }
     setCurrent(target);
     loading.current = false;
   }, []);
   const next = useCallback(() => {
     if (loading.current) return;
+    if (historyPosition.current < history.current.length - 1) {
+      void show(history.current[historyPosition.current + 1], historyPosition.current + 1);
+      return;
+    }
     bag.current = bag.current.filter(target => target !== index.current);
     if (!bag.current.length) {
       bag.current = frames.map((_, i) => i).filter(i => i !== index.current);
@@ -38,6 +51,10 @@ export default function Home() {
     }
     void show(bag.current.pop()!);
   }, [show]);
+  const back = useCallback(() => {
+    if (historyPosition.current > 0) void show(history.current[historyPosition.current - 1], historyPosition.current - 1);
+    else next();
+  }, [next, show]);
   useEffect(() => {
     mounted.current = true;
     let lastOpening = -1;
@@ -48,6 +65,8 @@ export default function Home() {
     const choices = frames.map((_, i) => i).filter(i => i !== lastOpening);
     const opening = choices[Math.floor(Math.random() * choices.length)] ?? 0;
     index.current = opening;
+    history.current = [opening];
+    historyPosition.current = 0;
     setCurrent(opening);
     try { sessionStorage.setItem('plugin3d-opening-frame', String(opening)); } catch {}
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -59,6 +78,50 @@ export default function Home() {
     return () => { mounted.current = false; motion.removeEventListener('change', onMotion); document.removeEventListener('visibilitychange', visibility); };
   }, []);
   useEffect(() => {
+    const element = hero.current;
+    if (!element || !ready) return;
+    let lastChange = -Infinity;
+    let wheelTotal = 0;
+    let lastWheel = 0;
+    let touchStart: { x: number; y: number } | null = null;
+    const navigate = (direction: number) => {
+      const now = performance.now();
+      if (loading.current || now - lastChange < 1200) return;
+      lastChange = now;
+      direction > 0 ? next() : back();
+    };
+    const wheel = (event: WheelEvent) => {
+      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+      event.preventDefault();
+      const now = performance.now();
+      if (now - lastWheel > 180 || Math.sign(wheelTotal) !== Math.sign(event.deltaY)) wheelTotal = 0;
+      lastWheel = now;
+      wheelTotal += event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1);
+      if (Math.abs(wheelTotal) >= 45) { navigate(wheelTotal); wheelTotal = 0; }
+    };
+    const startTouch = (event: TouchEvent) => {
+      touchStart = event.touches.length === 1 ? { x: event.touches[0].clientX, y: event.touches[0].clientY } : null;
+    };
+    const endTouch = (event: TouchEvent) => {
+      if (!touchStart || !event.changedTouches.length) return;
+      const deltaY = touchStart.y - event.changedTouches[0].clientY;
+      const deltaX = touchStart.x - event.changedTouches[0].clientX;
+      touchStart = null;
+      if (Math.abs(deltaY) >= 45 && Math.abs(deltaY) > Math.abs(deltaX)) {
+        suppressClickUntil.current = performance.now() + 400;
+        navigate(deltaY);
+      }
+    };
+    element.addEventListener('wheel', wheel, { passive: false });
+    element.addEventListener('touchstart', startTouch, { passive: true });
+    element.addEventListener('touchend', endTouch, { passive: true });
+    return () => {
+      element.removeEventListener('wheel', wheel);
+      element.removeEventListener('touchstart', startTouch);
+      element.removeEventListener('touchend', endTouch);
+    };
+  }, [ready, next, back]);
+  useEffect(() => {
     if (paused || hidden || !ready) return;
     const timer = setTimeout(next, 4000);
     return () => clearTimeout(timer);
@@ -69,7 +132,7 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [ready]);
   return <main id="main-content" className="home">
-    <section className="hero" aria-label="Projects">
+    <section ref={hero} className="hero" aria-label="Projects" onClickCapture={event => { if (performance.now() < suppressClickUntil.current) { event.preventDefault(); event.stopPropagation(); } }}>
       {frame && <Link className="hero-image-link" href={`/projects/${frame.film.slug}/`} aria-label={`View ${frame.film.title}`}>
         {previous !== null && <img className="hero-image previous-image" src={projectImage(frames[previous].film, frames[previous].frame)} alt="" style={{ objectPosition: frames[previous].film.focus }} />}
         <img key={current} className={`hero-image ${previous !== null ? 'entering' : ''}`} src={projectImage(frame.film, frame.frame)} alt={`${frame.film.title} — a frame by Dinis Pereira`} style={{ objectPosition: frame.film.focus }} fetchPriority="high" onLoad={() => setReady(true)} />

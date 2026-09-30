@@ -4,7 +4,6 @@ export const socialLinks = [
   { name: 'Instagram', url: 'https://www.instagram.com/plugin3d/' },
   { name: 'YouTube', url: 'https://www.youtube.com/@plugin3dstudio' },
   { name: 'X', url: 'https://x.com/plugin3d' },
-  { name: 'LinkedIn', url: 'https://www.linkedin.com/in/dinis-pereira-92856a331/' },
   { name: 'Patreon', url: 'https://www.patreon.com/PlugIn3D' },
   { name: 'Superhive', url: 'https://superhivemarket.com/creators/dinisaddons' },
 ];
