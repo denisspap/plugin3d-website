@@ -39,8 +39,11 @@ The source repository is https://github.com/denisspap/plugin3d-website. GitHub P
 - `public/models`: model cover images from Superhive.
 - `lib/catalog.ts`: Making of posts and 3D model details.
 - `public/plugin3d-logo.png`: transparent logo used in the header and About page.
+- `public/interactive/plugin3d.glb`: the supplied FBX cube, optimized to 531 KB for an interactive header logo on every page. It turns toward the pointer or on keyboard focus. Rendering stops when it settles; reduced-motion preferences disable turning. The original image remains available as a fallback if WebGL is unavailable. The About page retains the static logo.
 
-Each project has a real static URL under `/projects/project-name/`, with its own gallery and page title. Making of lists eight specified Patreon posts, shuffled on each visit with direct links. 3D models and tools combines the three Superhive models and three Blender tools at `/tools/`; the previous `/models/` address forwards there. Contact shows only email and an Instagram message link (Instagram may require login). YouTube videos are embedded on matching project pages, including Partycles on Ring; Instagram videos use links only.
+Projects, Making of, models, and tools shuffle on every visit and reload, preserving every item and avoiding an identical consecutive order in the same tab. Homepage transitions always select a different project, including when fast scrolling skips several images. Ring uses its second image as the gallery thumbnail.
+
+Each project has a real static URL under `/projects/project-name/`, with its own gallery and page title. Making of lists 24 Patreon posts, shuffled on each visit with direct links and public covers. 3D models and tools combines the three Superhive models and three Blender tools at `/tools/`; the previous `/models/` address forwards there. Contact shows only email and an Instagram message link (Instagram may require login). YouTube videos are embedded on matching project pages, including Partycles on Ring; Instagram videos use links only.
 
 The original PNG images were not modified. To regenerate the optimized versions locally, run `node scripts/prepare-images.mjs "PATH_TO_ORIGINAL_IMAGES"`; the product originals must also be available in `work/product-assets`. Regeneration is not needed for deployment: the optimized files are already included.
 

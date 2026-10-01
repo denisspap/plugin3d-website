@@ -2,6 +2,9 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { frames, projectImage } from '@/lib/content';
+import { differentProjectTarget } from '@/lib/random-order';
+
+const projectGroups = frames.map(frame => frame.film.slug);
 
 export default function Home() {
   const [current, setCurrent] = useState<number | null>(null);
@@ -23,7 +26,7 @@ export default function Home() {
   const frame = current === null ? null : frames[current];
   const show = useCallback(async (target: number, duration: number) => {
     const request = ++imageRequest.current;
-    if (target === index.current) { loading.current = false; return; }
+    if (projectGroups[target] === projectGroups[index.current]) { loading.current = false; return; }
     loading.current = true;
     let image = imageCache.current.get(target);
     if (!image) {
@@ -41,15 +44,18 @@ export default function Home() {
   }, []);
   const move = useCallback((steps: number, duration = 1150) => {
     const randomFrame = (avoid: number) => {
-      bag.current = bag.current.filter(target => target !== avoid);
-      if (!bag.current.length) {
-        bag.current = frames.map((_, i) => i).filter(i => i !== avoid);
+      let eligible = bag.current.filter(target => projectGroups[target] !== projectGroups[avoid]);
+      if (!eligible.length) {
+        bag.current = frames.map((_, i) => i);
         for (let i = bag.current.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [bag.current[i], bag.current[j]] = [bag.current[j], bag.current[i]];
         }
+        eligible = bag.current.filter(target => projectGroups[target] !== projectGroups[avoid]);
       }
-      return bag.current.pop()!;
+      const next = eligible[eligible.length - 1];
+      bag.current = bag.current.filter(target => target !== next);
+      return next;
     };
     for (let step = 0; step < Math.abs(steps); step++) {
       if (steps > 0) {
@@ -58,6 +64,12 @@ export default function Home() {
       } else if (historyPosition.current > 0) historyPosition.current--;
       else history.current.unshift(randomFrame(history.current[0]));
     }
+    // Large wheel deltas can skip several entries and land on the visible project.
+    const direction = Math.sign(steps) || 1;
+    let targetPosition = differentProjectTarget(history.current, historyPosition.current, direction, projectGroups, index.current);
+    if (targetPosition >= history.current.length) history.current.push(randomFrame(index.current));
+    else if (targetPosition < 0) { history.current.unshift(randomFrame(index.current)); targetPosition = 0; }
+    historyPosition.current = targetPosition;
     void show(history.current[historyPosition.current], duration);
   }, [show]);
   useEffect(() => {
@@ -67,7 +79,7 @@ export default function Home() {
       const saved = sessionStorage.getItem('plugin3d-opening-frame');
       if (saved !== null) lastOpening = Number(saved);
     } catch { /* The slideshow also works when browser storage is unavailable. */ }
-    const choices = frames.map((_, i) => i).filter(i => i !== lastOpening);
+    const choices = frames.map((_, i) => i).filter(i => projectGroups[i] !== projectGroups[lastOpening]);
     const opening = choices[Math.floor(Math.random() * choices.length)] ?? 0;
     index.current = opening;
     history.current = [opening];
@@ -147,7 +159,7 @@ export default function Home() {
         <img key={current} className={`hero-image ${previous !== null ? 'entering' : ''}`} src={projectImage(frame.film, frame.frame)} alt={`${frame.film.title} — a frame by Dinis Pereira`} style={{ objectPosition: frame.film.focus }} fetchPriority="high" onLoad={() => setReady(true)} />
         <div className="hero-shade" />
       </Link>}
-      <div className="hero-identity"><h1>Dinis Pereira</h1><p className="identity-subtitle">PlugIn3D</p></div>
+      <div className="hero-identity"><p className="identity-role">3D artist and Filmmaker</p><h1>Dinis Pereira</h1><p className="identity-subtitle">PlugIn3D</p></div>
       <div className="hero-bottom">
         {frame && <Link href={`/projects/${frame.film.slug}/`} className="hero-project" key={frame.film.slug}><h2>{frame.film.title}</h2><p>{frame.film.category}</p></Link>}
       </div>

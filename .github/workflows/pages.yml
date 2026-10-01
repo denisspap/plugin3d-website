@@ -24,6 +24,8 @@ jobs:
         id: pages
         uses: actions/configure-pages@v5
       - run: npm ci
+      - name: Check gallery randomization
+        run: node scripts/check-randomization.mjs
       - name: Export static website
         run: npm run build:github
         env:

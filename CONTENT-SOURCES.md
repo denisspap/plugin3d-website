@@ -57,3 +57,9 @@ Added Making of with seven main tutorials from the public Patreon index, and 3D 
 ## Specified Patreon posts and video verification
 
 Replaced Making of with the eight posts supplied by Dinis, stripping creator-only /edit suffixes and splitting the malformed final URL into Camera Autofocus (149929516) and Coffee Bean Exploding Effect (151559804). Kept the general Patreon link. Cards shuffle per visit. Head Through Bars and Camera Autofocus use text covers because public Patreon thumbnail retrieval was blocked. YouTube embeds use the official IFrame API, actual page origin, strict-origin-when-cross-origin referrer policy, player error handling, and an original-video fallback. Documentation: https://developers.google.com/youtube/iframe_api_reference and https://developers.google.com/youtube/player_parameters .
+
+## October 1, 2026 update
+
+Added 16 distinct Making of projects from the public Patreon sitemap (https://www.patreon.com/cw/PlugIn3D/sitemap), with links and publicly displayed covers verified on https://www.patreon.com/cw/PlugIn3D/posts. The eight requested posts remain. Head Through Bars and Camera Autofocus now have their public covers too. No paid tutorial files were downloaded. Post titles are shortened for the portfolio; each card links to its exact original post.
+
+The supplied plugin3d_3dmodel.fbx was imported in Blender, reduced to about 12,000 vertices, and exported as public/interactive/plugin3d.glb. It supplies the interactive header logo throughout the site. The browser icon continues to use plugin3dprofile.png. Ring's project and Patreon thumbnail use ring-2.

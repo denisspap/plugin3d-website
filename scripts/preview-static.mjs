@@ -3,7 +3,7 @@ import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 const root = path.resolve('out');
 const base = process.env.NEXT_PUBLIC_BASE_PATH || '';
-const types = { '.html':'text/html; charset=utf-8', '.css':'text/css', '.js':'text/javascript', '.json':'application/json', '.webp':'image/webp', '.svg':'image/svg+xml', '.woff2':'font/woff2', '.txt':'text/plain' };
+const types = { '.html':'text/html; charset=utf-8', '.css':'text/css', '.js':'text/javascript', '.json':'application/json', '.webp':'image/webp', '.png':'image/png', '.glb':'model/gltf-binary', '.svg':'image/svg+xml', '.woff2':'font/woff2', '.txt':'text/plain' };
 http.createServer(async (req, res) => {
   try {
     let url = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);

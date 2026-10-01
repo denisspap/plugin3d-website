@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { asset } from '@/lib/content';
+import { InteractiveLogo } from '@/components/interactive-logo';
 export function SiteHeader() {
   const path = usePathname();
   const [open, setOpen] = useState(false);
@@ -15,7 +15,7 @@ export function SiteHeader() {
     return () => document.removeEventListener('keydown', listener);
   }, [open]);
   return <header className={`site-header ${path === '/' ? 'over-hero' : ''} ${open ? 'menu-open' : ''}`}>
-    <Link className="wordmark" href="/" aria-label="PlugIn3D home"><img className="brand-logo" src={asset('/plugin3d-logo.png')} alt="PlugIn3D" width={64} height={64}/></Link>
+    <InteractiveLogo/>
     <button className="menu-toggle" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="main-navigation" onClick={() => setOpen(!open)}>{open ? <X size={22}/> : <Menu size={22}/>}</button>
     <nav id="main-navigation" className={open ? 'is-open' : ''} aria-label="Main navigation">
       <Link href="/" aria-current={path === '/' ? 'page' : undefined}>Main page</Link>
